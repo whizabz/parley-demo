@@ -1,0 +1,80 @@
+@import "tailwindcss";
+@import "./styles/tokens.css";
+
+@theme {
+  --font-serif: "Libre Baskerville", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --color-brand: #002677;
+  --color-accent: #196ecf;
+  --color-surface: #f4f4f4;
+  --color-highlight: #e5f8fb;
+  --color-warm: #faf8f2;
+  --color-body: #333333;
+  --color-border: #b3babc;
+  --color-border-form: #697277;
+  --color-impact: #d14600;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-body);
+  background: white;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(36px, -24px) scale(1.08); }
+  66% { transform: translate(-24px, 18px) scale(0.92); }
+}
+
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-30px, -36px) scale(1.1); }
+}
+
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-orb-1 { animation: orb-drift-1 9s ease-in-out infinite; }
+.animate-orb-2 { animation: orb-drift-2 11s ease-in-out infinite; }
+.animate-card-rise { animation: card-rise 0.5s ease-out forwards; }
+.animate-skeleton { animation: skeleton-pulse 1.5s ease-in-out infinite; }
+
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-33.333%); }
+}
+
+@keyframes marquee-right {
+  from { transform: translateX(-33.333%); }
+  to { transform: translateX(0); }
+}
+
+.animate-marquee-left {
+  animation: marquee-left 55s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-right {
+  animation: marquee-right 60s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-transition {
+    transition-duration: 0.01ms !important;
+  }
+}
