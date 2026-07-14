@@ -14,7 +14,7 @@ The experience should never feel like a BI tool with a chat bolted on. It should
 
 - Centered chat input, placeholder "Ask a question about your data…"
 - A subtle animated avatar above the input — soft, blurred, multi-color orb (blue/violet) with slow organic drifting motion, signaling AI presence without being distracting
-- Headline: "Ask a question. Get a report." with a one-line subhead naming the domain vocabulary (claims, premiums, loss ratios, retention)
+- Headline: "Your data, in conversation." with a one-line subhead naming the domain vocabulary (claims, premiums, loss ratios, retention)
 - Suggested prompt chips below the input (4–6 example questions spanning trend, comparison, driver, and anomaly question types)
 - A "Your saved reports" section appears once the user has favorited at least one report — a grid of cards, each showing the original question and its primary metric, clickable to jump straight to that report
 - No visible data-source selection, no setup step, no required configuration before the first question can be asked
