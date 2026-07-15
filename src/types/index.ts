@@ -88,9 +88,18 @@ export interface Report {
   exportFileSize?: string
 }
 
-export type ResponseKind = 'text' | 'report'
+export type ResponseKind = 'text' | 'report' | 'clarify'
 
 export type VersionFeedback = 'up' | 'down'
+
+export interface ClarificationOption {
+  id: string
+  label: string
+  /** Preset question submitted when this option is chosen. */
+  submitQuestion?: string
+  /** When true, the user types a custom follow-up instead. */
+  allowsCustom?: boolean
+}
 
 export interface Version {
   id: string
@@ -105,6 +114,9 @@ export interface Version {
   bookmarkName?: string
   feedback?: VersionFeedback | null
   feedbackComment?: string
+  clarificationOptions?: ClarificationOption[]
+  /** Option id chosen when this was a clarify turn. */
+  selectedClarificationId?: string
 }
 
 export interface Scenario {
@@ -122,6 +134,7 @@ export interface Scenario {
   originalReportRef?: OriginalReportRef
   exportFileName?: string
   exportFileSize?: string
+  clarificationOptions?: ClarificationOption[]
 }
 
 export interface SuggestedPrompt {
@@ -142,7 +155,13 @@ export type SimulationPhase =
   | 'background-wait'
   | 'complete'
 
-export type TriageOutcome = 'text' | 'reuse' | 'instant' | 'background' | 'export'
+export type TriageOutcome =
+  | 'text'
+  | 'clarify'
+  | 'reuse'
+  | 'instant'
+  | 'background'
+  | 'export'
 
 export type PipelineStepVariant = 'default' | 'alert'
 

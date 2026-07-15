@@ -5,6 +5,7 @@ import { isTextOnlyVersion, versionHasVisualization } from '../../utils/canvas'
 import { getArtifactKind, getArtifactTypeLabel } from '../../utils/artifacts'
 import { BookmarkButton } from '../shared/BookmarkButton'
 import { ChatWorkingIndicator } from './ChatWorkingIndicator'
+import { ClarificationPrompt } from './ClarificationPrompt'
 import { MessageFeedback } from './MessageFeedback'
 import { NarrativeText } from './NarrativeText'
 
@@ -21,6 +22,7 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
   const openCanvas = useAppStore((s) => s.openCanvas)
   const canvasOpen = useAppStore((s) => s.canvasOpen)
   const simulationPhase = useAppStore((s) => s.simulationPhase)
+  const versions = useAppStore((s) => s.versions)
   const isLoading = useIsVersionLoading(version.id)
   const showWorkingOrb =
     isLoading &&
@@ -28,6 +30,7 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
     simulationPhase !== 'idle'
 
   const summary = version.summary ?? 'Report generated from your question'
+  const isClarify = version.responseKind === 'clarify'
   const isTextOnly = isTextOnlyVersion(version)
   const hasVisualization = versionHasVisualization(version)
   const showVisualizationCard =
@@ -35,6 +38,14 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
   const artifactKind = getArtifactKind(version)
   const isExport = artifactKind === 'export'
   const ArtifactIcon = isExport ? FileSpreadsheet : BarChart3
+  const isLatestVersion = versions[versions.length - 1]?.id === version.id
+  const clarificationInteractive =
+    isClarify &&
+    isLatestVersion &&
+    isActive &&
+    !isLoading &&
+    simulationPhase === 'complete' &&
+    !version.selectedClarificationId
 
   return (
     <div className={`space-y-4 ${!isActive ? 'opacity-80' : ''}`}>
@@ -53,6 +64,12 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
               {isTextOnly ? (
                 <div className="text-left">
                   <NarrativeText segments={version.narrative} />
+                  {isClarify && (
+                    <ClarificationPrompt
+                      version={version}
+                      interactive={clarificationInteractive}
+                    />
+                  )}
                 </div>
               ) : (
                 <button
@@ -141,7 +158,7 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
                 </div>
               )}
 
-              <MessageFeedback version={version} />
+              {!isClarify && <MessageFeedback version={version} />}
             </div>
           </>
         )}

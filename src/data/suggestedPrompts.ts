@@ -8,6 +8,12 @@ export const suggestedPrompts: SuggestedPrompt[] = [
     question: "What's our loss ratio trend this year?",
   },
   {
+    id: 'clarify-claims-scope',
+    title: 'Can you analyze our claims performance?',
+    description: 'Asks clarifying questions with A–D options before answering.',
+    question: 'Can you analyze our claims performance?',
+  },
+  {
     id: 'claims-region',
     title: 'How do claims by region compare to last year?',
     description: 'Regional volume and year-over-year change across markets.',
@@ -114,13 +120,13 @@ export const suggestedPrompts: SuggestedPrompt[] = [
 /** Curated starters for the home empty state (demo-friendly mix of answers/reports). */
 const HOME_STARTER_IDS = [
   'loss-ratio',
+  'clarify-claims-scope',
   'claims-volume-reuse',
   'export-claims',
   'retention-cohort',
   'claims-region',
   'premium-retention',
   'severity-q2',
-  'prior-auth-volume',
 ] as const
 
 export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) => {
@@ -132,9 +138,9 @@ export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) =
 /** Placeholders rotate through these when the home input is idle (typed as real questions). */
 export const homePlaceholderExamples = [
   "What's our loss ratio trend this year?",
+  'Can you analyze our claims performance?',
   'How do claims by region compare to last year?',
   'Show claims volume by region',
-  'Which member segments have the lowest retention?',
   'Pull every claim line item for the last five years',
 ]
 

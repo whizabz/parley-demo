@@ -18,6 +18,7 @@ const NO_EXISTING_REPORT_STEP: PipelineStep = { text: 'No existing report foundâ
 export function getPipelineForOutcome(outcome: TriageOutcome): PipelineStep[] {
   switch (outcome) {
     case 'text':
+    case 'clarify':
       return TEXT_PREFIX_STEPS
     case 'reuse':
       return [...SHARED_PREFIX_STEPS, EXISTING_REPORT_STEP]
@@ -70,6 +71,9 @@ export function resolveTriageOutcome(
   forcedDemoMode: DemoMode | null,
   autoOutcomeIndex = 0,
 ): TriageOutcome {
+  // Scenario-owned clarify demos always ask first â€” independent of forced mode.
+  if (scenario.clarificationOptions?.length) return 'clarify'
+
   if (forcedDemoMode === 'reused') return 'reuse'
   if (forcedDemoMode === 'background') return 'background'
   if (forcedDemoMode === 'export') return 'export'
@@ -81,7 +85,10 @@ export function resolveTriageOutcome(
 }
 
 export function scenarioForOutcome(base: Scenario, outcome: TriageOutcome): Scenario {
-  if (outcome === 'text') return { ...base, cards: [] }
+  if (outcome === 'clarify') {
+    return { ...base, cards: [], clarificationOptions: base.clarificationOptions }
+  }
+  if (outcome === 'text') return { ...base, cards: [], clarificationOptions: undefined }
   if (outcome === 'export') return applyTriageLaneOverride(base, 'export')
   if (outcome === 'background') return applyTriageLaneOverride(base, 'background')
   return base

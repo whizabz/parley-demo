@@ -106,6 +106,11 @@ interface AppState {
   closeCanvas: () => void
   openLibrary: () => void
   closeLibrary: () => void
+  resolveClarification: (
+    versionId: string,
+    optionId: string,
+    customText?: string,
+  ) => void
 }
 
 function makeVersion(
@@ -114,7 +119,7 @@ function makeVersion(
   responseKind: ResponseKind = 'report',
 ): Version {
   const report = scenarioToReport(scenario)
-  if (responseKind === 'text') {
+  if (responseKind === 'text' || responseKind === 'clarify') {
     report.cards = []
   }
   return {
@@ -123,10 +128,12 @@ function makeVersion(
     summary: scenario.summary,
     report,
     narrative: scenario.narrative,
-    refinementChips: scenario.refinementChips,
+    refinementChips: responseKind === 'clarify' ? [] : scenario.refinementChips,
     responseKind,
     createdAt: new Date().toISOString(),
     favorited: false,
+    clarificationOptions:
+      responseKind === 'clarify' ? scenario.clarificationOptions : undefined,
   }
 }
 
@@ -143,7 +150,8 @@ function patchVersionFromScenario(version: Version, scenario: ReturnType<typeof 
 }
 
 function chipsFromVersion(version: Version | undefined | null): string[] | null {
-  if (!version?.refinementChips?.length) return null
+  if (!version || version.responseKind === 'clarify') return null
+  if (!version.refinementChips?.length) return null
   return [...version.refinementChips]
 }
 
@@ -177,9 +185,10 @@ function applyQuestion(
   freshSession: boolean,
   existingVersions: Version[],
 ) {
-  const responseKind: ResponseKind = triageOutcome === 'text' ? 'text' : 'report'
+  const responseKind: ResponseKind =
+    triageOutcome === 'text' ? 'text' : triageOutcome === 'clarify' ? 'clarify' : 'report'
   const cost =
-    responseKind === 'text'
+    responseKind === 'text' || responseKind === 'clarify'
       ? 0
       : CREDIT_COSTS[
           scenario.triageLane === 'export'
@@ -824,6 +833,27 @@ export const useAppStore = create<AppState>()(
       openLibrary: () => set({ libraryOpen: true }),
 
       closeLibrary: () => set({ libraryOpen: false }),
+
+      resolveClarification: (versionId, optionId, customText) => {
+        const s = get()
+        const version = s.versions.find((v) => v.id === versionId)
+        if (!version?.clarificationOptions?.length || version.selectedClarificationId) return
+
+        const option = version.clarificationOptions.find((o) => o.id === optionId)
+        if (!option) return
+
+        const nextQuestion = option.allowsCustom
+          ? customText?.trim()
+          : option.submitQuestion?.trim()
+        if (!nextQuestion) return
+
+        const patched = patchVersionEverywhere(s, versionId, (v) => ({
+          ...v,
+          selectedClarificationId: optionId,
+        }))
+        set(patched)
+        get().submitQuestion(nextQuestion)
+      },
 
       loadConversation: (conversationId: string) => {
         const s = get()

@@ -414,6 +414,50 @@ export const scenarios: Scenario[] = [
     cards: [monthlyBreakdownChart, lossRatioMetric, lossRatioInsight],
   },
   {
+    id: 'clarify-claims-scope',
+    summary: 'Need a bit more scope before building the analysis',
+    matchPatterns: [
+      'analyze our claims performance',
+      'claims performance',
+      'look into claims',
+      'analyze claims',
+    ],
+    question: 'Can you analyze our claims performance?',
+    triageLane: 'instant',
+    origin: 'generated',
+    domain: 'claims',
+    narrative: [
+      {
+        text: 'I can dig into claims performance — a few choices would change the analysis materially. Which scope should I use?',
+        type: 'interpretation',
+      },
+    ],
+    refinementChips: [],
+    cards: [],
+    clarificationOptions: [
+      {
+        id: 'A',
+        label: 'Loss ratio trend for the current year',
+        submitQuestion: "What's our loss ratio trend this year?",
+      },
+      {
+        id: 'B',
+        label: 'Regional claims volume vs last year',
+        submitQuestion: 'How do claims by region compare to last year?',
+      },
+      {
+        id: 'C',
+        label: 'Retention by member segment',
+        submitQuestion: 'Which member segments have the lowest retention?',
+      },
+      {
+        id: 'D',
+        label: '',
+        allowsCustom: true,
+      },
+    ],
+  },
+  {
     id: 'premium-retention',
     summary: 'Retention by segment — ACA lowest at 74.2%',
     matchPatterns: ['lowest retention', 'member segments', 'retention'],

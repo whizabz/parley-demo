@@ -57,7 +57,7 @@ export function useReportSimulation() {
     }
 
     if (thinkingStep >= pipelineSteps.length) {
-      if (triageOutcome === 'text') {
+      if (triageOutcome === 'text' || triageOutcome === 'clarify') {
         const timer = setTimeout(() => completeSimulation(), 600)
         return () => clearTimeout(timer)
       }
