@@ -18,7 +18,6 @@ interface HomePromptInputProps {
 }
 
 const TYPE_MS = 38
-const DELETE_MS = 22
 const HOLD_MS = 1600
 const GAP_MS = 400
 const MAX_TEXTAREA_PX = 128
@@ -106,7 +105,6 @@ export function HomePromptInput({ onSubmit }: HomePromptInputProps) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let phraseIndex = 0
     let charIndex = 0
-    let deleting = false
     let timer: number | undefined
     let cancelled = false
 
@@ -124,34 +122,24 @@ export function HomePromptInput({ onSubmit }: HomePromptInputProps) {
         setTypedPlaceholder(phrase)
         schedule(() => {
           phraseIndex = (phraseIndex + 1) % homePlaceholderExamples.length
-          tick()
+          setTypedPlaceholder('')
+          schedule(tick, GAP_MS)
         }, HOLD_MS)
         return
       }
 
-      if (!deleting) {
-        charIndex += 1
-        setTypedPlaceholder(phrase.slice(0, charIndex))
-        if (charIndex >= phrase.length) {
-          schedule(() => {
-            deleting = true
-            tick()
-          }, HOLD_MS)
-          return
-        }
-        schedule(tick, TYPE_MS)
+      charIndex += 1
+      setTypedPlaceholder(phrase.slice(0, charIndex))
+      if (charIndex >= phrase.length) {
+        schedule(() => {
+          setTypedPlaceholder('')
+          phraseIndex = (phraseIndex + 1) % homePlaceholderExamples.length
+          charIndex = 0
+          schedule(tick, GAP_MS)
+        }, HOLD_MS)
         return
       }
-
-      charIndex -= 1
-      setTypedPlaceholder(phrase.slice(0, Math.max(charIndex, 0)))
-      if (charIndex <= 0) {
-        deleting = false
-        phraseIndex = (phraseIndex + 1) % homePlaceholderExamples.length
-        schedule(tick, GAP_MS)
-        return
-      }
-      schedule(tick, DELETE_MS)
+      schedule(tick, TYPE_MS)
     }
 
     tick()
