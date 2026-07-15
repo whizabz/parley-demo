@@ -48,33 +48,45 @@ body {
   50% { opacity: 1; }
 }
 
+@keyframes thumb-confetti {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(0.4) rotate(var(--rot));
+  }
+}
+
+@keyframes thumb-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
 .animate-orb-1 { animation: orb-drift-1 9s ease-in-out infinite; }
 .animate-orb-2 { animation: orb-drift-2 11s ease-in-out infinite; }
 .animate-card-rise { animation: card-rise 0.5s ease-out forwards; }
 .animate-skeleton { animation: skeleton-pulse 1.5s ease-in-out infinite; }
+.animate-thumb-pop { animation: thumb-pop 0.35s ease-out; }
 
-@keyframes marquee-left {
-  from { transform: translateX(0); }
-  to { transform: translateX(-33.333%); }
-}
-
-@keyframes marquee-right {
-  from { transform: translateX(-33.333%); }
-  to { transform: translateX(0); }
-}
-
-.animate-marquee-left {
-  animation: marquee-left 55s linear infinite;
-  will-change: transform;
-}
-
-.animate-marquee-right {
-  animation: marquee-right 60s linear infinite;
-  will-change: transform;
+.thumb-confetti-piece {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 9999px;
+  pointer-events: none;
+  animation: thumb-confetti 0.55s ease-out forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .workspace-transition {
     transition-duration: 0.01ms !important;
+  }
+
+  .thumb-confetti-piece,
+  .animate-thumb-pop {
+    animation: none !important;
   }
 }

@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { ArrowUp } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
+import { RefinementChips } from '../shared/RefinementChips'
 import { ChatThread } from './ChatThread'
 
 export function ChatInput() {
   const [input, setInput] = useState('')
   const submitQuestion = useAppStore((s) => s.submitQuestion)
+  const composerChips = useAppStore((s) => s.composerChips)
   const simulationPhase = useAppStore((s) => s.simulationPhase)
   const isBusy =
     simulationPhase === 'discovering' ||
@@ -20,8 +22,15 @@ export function ChatInput() {
     setInput('')
   }
 
+  const showChips = !isBusy && !!composerChips && composerChips.length > 0
+
   return (
     <div className="shrink-0 px-4 pb-6 pt-2 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]">
+      {showChips && (
+        <div className="mb-3">
+          <RefinementChips chips={composerChips} onSelect={submitQuestion} />
+        </div>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault()

@@ -1,5 +1,6 @@
-import { BarChart3, ShieldCheck, Download, X } from 'lucide-react'
+import { BarChart3, Bookmark, ShieldCheck, Download, X } from 'lucide-react'
 import { useAppStore, useActiveVersion, useIsActiveVersionLoading } from '../../store/appStore'
+import { getArtifactKind } from '../../utils/artifacts'
 import { VersionBanner } from './VersionBanner'
 import { SimilarReportPrompt } from './SimilarReportPrompt'
 import { ExportResult } from './ExportResult'
@@ -16,9 +17,11 @@ export function CanvasPanel({ onClose }: CanvasPanelProps) {
   const simulationPhase = useAppStore((s) => s.simulationPhase)
   const openValidation = useAppStore((s) => s.openValidation)
   const addToast = useAppStore((s) => s.addToast)
+  const openBookmarkPrompt = useAppStore((s) => s.openBookmarkPrompt)
+  const removeBookmark = useAppStore((s) => s.removeBookmark)
   const isActiveLoading = useIsActiveVersionLoading()
 
-  const isExport = version?.report.triageLane === 'export'
+  const isExport = version ? getArtifactKind(version) === 'export' : false
   const showTriagePrompt = version && simulationPhase === 'triage-prompt'
   const showExport =
     isExport && !isActiveLoading && simulationPhase === 'complete'
@@ -45,20 +48,34 @@ export function CanvasPanel({ onClose }: CanvasPanelProps) {
             <>
               <button
                 type="button"
+                onClick={() =>
+                  version.favorited
+                    ? removeBookmark(version.id)
+                    : openBookmarkPrompt(version.id)
+                }
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-highlight"
+              >
+                <Bookmark className={`h-3.5 w-3.5 ${version.favorited ? 'fill-accent' : ''}`} />
+                {version.favorited ? 'Saved' : isExport ? 'Save export' : 'Save report'}
+              </button>
+              <button
+                type="button"
                 onClick={openValidation}
                 className="flex items-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-highlight"
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
                 Validation
               </button>
-              <button
-                type="button"
-                onClick={() => addToast('Export started — dashboard PDF will download shortly.')}
-                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-highlight"
-              >
-                <Download className="h-3.5 w-3.5" />
-                Export
-              </button>
+              {!isExport && (
+                <button
+                  type="button"
+                  onClick={() => addToast('Export started — dashboard PDF will download shortly.')}
+                  className="flex items-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-highlight"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Export
+                </button>
+              )}
             </>
           )}
           {onClose && (
@@ -81,7 +98,7 @@ export function CanvasPanel({ onClose }: CanvasPanelProps) {
 
         {showNarrative && <ReportNarrative version={version} />}
 
-        {showExport && (
+        {showExport && version && (
           <ExportResult
             fileName={version.report.exportFileName ?? `${version.report.domain}_export.csv`}
             fileSize={version.report.exportFileSize ?? '1.8 MB'}

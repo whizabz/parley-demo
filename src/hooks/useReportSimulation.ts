@@ -12,7 +12,11 @@ export function useReportSimulation() {
   const triageOutcome = useAppStore((s) => s.triageOutcome)
   const revealedCardCount = useAppStore((s) => s.revealedCardCount)
   const versions = useAppStore((s) => s.versions)
-  const activeVersionId = useAppStore((s) => s.activeVersionId)
+  const conversations = useAppStore((s) => s.conversations)
+  const loadingVersionId = useAppStore((s) => s.loadingVersionId)
+  const loadingConversationId = useAppStore((s) => s.loadingConversationId)
+  const activeConversationId = useAppStore((s) => s.activeConversationId)
+  const view = useAppStore((s) => s.view)
 
   const setThinkingStep = useAppStore((s) => s.setThinkingStep)
   const setSimulationPhase = useAppStore((s) => s.setSimulationPhase)
@@ -20,9 +24,15 @@ export function useReportSimulation() {
   const completeSimulation = useAppStore((s) => s.completeSimulation)
   const addToast = useAppStore((s) => s.addToast)
 
-  const activeVersion = versions.find((v) => v.id === activeVersionId)
-  const totalCards = activeVersion?.report.cards.length ?? 0
-  const isExport = activeVersion?.report.triageLane === 'export'
+  const loadingVersion =
+    versions.find((v) => v.id === loadingVersionId) ??
+    conversations.flatMap((c) => c.versions).find((v) => v.id === loadingVersionId)
+
+  const totalCards = loadingVersion?.report.cards.length ?? 0
+  const isExport = loadingVersion?.report.triageLane === 'export'
+  const isAwayFromJob =
+    !!loadingConversationId &&
+    (view !== 'workspace' || activeConversationId !== loadingConversationId)
 
   const pipelineSteps = useMemo(
     () => (triageOutcome ? getPipelineForOutcome(triageOutcome) : []),
@@ -35,7 +45,7 @@ export function useReportSimulation() {
     simulationPhase === 'background-wait'
 
   useEffect(() => {
-    if (!isProcessing || !triageOutcome) return
+    if (!isProcessing || !triageOutcome || !loadingVersionId) return
 
     if (
       simulationPhase === 'discovering' &&
@@ -58,11 +68,16 @@ export function useReportSimulation() {
       if (triageOutcome === 'background') {
         const timer = setTimeout(() => {
           addToast('Your report is ready.')
-          setSimulationPhase('revealing')
+          // Skip card reveal while away so the sidebar can show the ready state.
+          if (isAwayFromJob) completeSimulation()
+          else setSimulationPhase('revealing')
         }, 6000)
         return () => clearTimeout(timer)
       }
-      const timer = setTimeout(() => setSimulationPhase('revealing'), 600)
+      const timer = setTimeout(() => {
+        if (isAwayFromJob) completeSimulation()
+        else setSimulationPhase('revealing')
+      }, 600)
       return () => clearTimeout(timer)
     }
 
@@ -88,6 +103,8 @@ export function useReportSimulation() {
     triageOutcome,
     pipelineSteps,
     isExport,
+    loadingVersionId,
+    isAwayFromJob,
     setThinkingStep,
     setSimulationPhase,
     completeSimulation,
@@ -95,14 +112,29 @@ export function useReportSimulation() {
   ])
 
   useEffect(() => {
-    if (simulationPhase !== 'revealing') return
+    if (simulationPhase !== 'revealing' || !loadingVersionId) return
+
+    // User left mid-reveal: finish immediately so the ready indicator can show.
+    if (isAwayFromJob) {
+      const timer = setTimeout(() => completeSimulation(), 0)
+      return () => clearTimeout(timer)
+    }
+
     if (revealedCardCount < totalCards) {
       const timer = setTimeout(() => incrementRevealedCards(), 700)
       return () => clearTimeout(timer)
     }
     const timer = setTimeout(() => completeSimulation(), 400)
     return () => clearTimeout(timer)
-  }, [simulationPhase, revealedCardCount, totalCards, incrementRevealedCards, completeSimulation])
+  }, [
+    simulationPhase,
+    revealedCardCount,
+    totalCards,
+    loadingVersionId,
+    isAwayFromJob,
+    incrementRevealedCards,
+    completeSimulation,
+  ])
 
   return {
     pipelineSteps,

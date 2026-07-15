@@ -111,5 +111,42 @@ export const suggestedPrompts: SuggestedPrompt[] = [
   },
 ]
 
-export const marqueeRowOne = suggestedPrompts.filter((_, i) => i % 2 === 0)
-export const marqueeRowTwo = suggestedPrompts.filter((_, i) => i % 2 === 1)
+/** Curated starters for the home empty state (demo-friendly mix of answers/reports). */
+const HOME_STARTER_IDS = [
+  'loss-ratio',
+  'claims-volume-reuse',
+  'export-claims',
+  'retention-cohort',
+  'claims-region',
+  'premium-retention',
+  'severity-q2',
+  'prior-auth-volume',
+] as const
+
+export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) => {
+  const prompt = suggestedPrompts.find((p) => p.id === id)
+  if (!prompt) throw new Error(`Missing starter prompt: ${id}`)
+  return prompt
+})
+
+/** Placeholders rotate through these when the home input is idle (typed as real questions). */
+export const homePlaceholderExamples = [
+  "What's our loss ratio trend this year?",
+  'How do claims by region compare to last year?',
+  'Show claims volume by region',
+  'Which member segments have the lowest retention?',
+  'Pull every claim line item for the last five years',
+]
+
+export function filterHomePrompts(query: string, limit = 5): SuggestedPrompt[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return homeStarterPrompts.slice(0, limit)
+
+  const ranked = suggestedPrompts.filter(
+    (p) =>
+      p.title.toLowerCase().includes(q) ||
+      p.question.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q),
+  )
+  return ranked.slice(0, limit)
+}

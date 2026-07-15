@@ -5,6 +5,8 @@ interface BookmarkButtonProps {
   onClick: () => void
   size?: 'sm' | 'md'
   className?: string
+  /** Override accessible label; defaults to Save / Saved */
+  label?: string
 }
 
 export function BookmarkButton({
@@ -12,6 +14,7 @@ export function BookmarkButton({
   onClick,
   size = 'md',
   className = 'p-1',
+  label,
 }: BookmarkButtonProps) {
   const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
   return (
@@ -22,7 +25,8 @@ export function BookmarkButton({
         onClick()
       }}
       className={`rounded text-brand hover:bg-highlight ${className}`}
-      aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark report'}
+      aria-label={label ?? (bookmarked ? 'Remove from library' : 'Save to library')}
+      title={label ?? (bookmarked ? 'Saved' : 'Save')}
     >
       <Bookmark className={`${iconSize} ${bookmarked ? 'fill-brand' : ''}`} />
     </button>

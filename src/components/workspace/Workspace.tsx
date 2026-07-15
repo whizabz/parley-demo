@@ -1,94 +1,142 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import {
+  Panel,
+  PanelGroup,
+  PanelResizeHandle,
+  type ImperativePanelGroupHandle,
+} from 'react-resizable-panels'
 import { ChatPanel } from '../chat/ChatPanel'
 import { CanvasPanel } from '../canvas/CanvasPanel'
-import { useReportSimulation } from '../../hooks/useReportSimulation'
 import { useAppStore, useActiveVersion } from '../../store/appStore'
 import { shouldAutoOpenCanvas, shouldShowCanvasContent } from '../../utils/canvas'
 
 const CANVAS_SHADOW =
   'shadow-[0_1px_4px_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.04)]'
 
-const WORKSPACE_TRANSITION = 'duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]'
+/** Chat panel width (%). Canvas takes the remainder. */
+const SNAP_CHAT_SIZES = [30, 50] as const
+const SNAP_THRESHOLD = 3.5
 
-function ResizeDivider() {
+function snapChatSize(size: number): number {
+  let nearest = size
+  let bestDistance = SNAP_THRESHOLD
+  for (const snap of SNAP_CHAT_SIZES) {
+    const distance = Math.abs(size - snap)
+    if (distance <= bestDistance) {
+      bestDistance = distance
+      nearest = snap
+    }
+  }
+  return nearest
+}
+
+function ResizeDivider({ onDragging }: { onDragging: (dragging: boolean) => void }) {
   return (
-    <div className="group relative z-10 flex w-3 shrink-0 items-center justify-center">
-      <div className="flex flex-col items-center justify-center gap-1 rounded-full px-1 py-3">
-        <span className="h-1 w-1 rounded-full bg-border-form/35" />
-        <span className="h-1 w-1 rounded-full bg-border-form/35" />
-        <span className="h-1 w-1 rounded-full bg-border-form/35" />
+    <PanelResizeHandle
+      hitAreaMargins={{ coarse: 16, fine: 8 }}
+      onDragging={onDragging}
+      className="group relative z-10 w-px shrink-0 cursor-col-resize bg-border/40 transition-colors hover:bg-brand/35"
+    >
+      <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100">
+        <span className="h-0.5 w-0.5 rounded-full bg-border-form/50" />
+        <span className="h-0.5 w-0.5 rounded-full bg-border-form/50" />
+        <span className="h-0.5 w-0.5 rounded-full bg-border-form/50" />
       </div>
-    </div>
+    </PanelResizeHandle>
   )
 }
 
 export function Workspace() {
-  useReportSimulation()
-
   const canvasOpen = useAppStore((s) => s.canvasOpen)
   const openCanvas = useAppStore((s) => s.openCanvas)
   const closeCanvas = useAppStore((s) => s.closeCanvas)
   const simulationPhase = useAppStore((s) => s.simulationPhase)
+  const activeConversationId = useAppStore((s) => s.activeConversationId)
+  const loadingConversationId = useAppStore((s) => s.loadingConversationId)
   const version = useActiveVersion()
+  const panelGroupRef = useRef<ImperativePanelGroupHandle>(null)
+  const isDraggingRef = useRef(false)
+  const isSnappingRef = useRef(false)
 
   const canvasHasContent = shouldShowCanvasContent(simulationPhase, version)
   const canvasExpanded = canvasOpen && canvasHasContent
+  const viewingActiveJob =
+    !!loadingConversationId && loadingConversationId === activeConversationId
 
   useEffect(() => {
+    if (!viewingActiveJob) return
     if (shouldAutoOpenCanvas(simulationPhase, version)) {
       openCanvas()
     }
-  }, [simulationPhase, version?.id, openCanvas])
+  }, [simulationPhase, version?.id, openCanvas, viewingActiveJob])
 
-  return (
-    <div className="flex h-full min-h-0 flex-1 overflow-hidden bg-white">
-      <div
-        className={`flex h-full min-w-0 justify-center overflow-hidden transition-[width] ${WORKSPACE_TRANSITION} ${
-          canvasExpanded ? 'w-1/2' : 'w-full'
-        }`}
-      >
-        <div
-          className={`flex h-full w-full flex-col transition-[max-width,transform] ${WORKSPACE_TRANSITION} ${
-            canvasExpanded ? 'max-w-2xl translate-x-0' : 'max-w-3xl translate-x-0'
-          }`}
-        >
+  const applySnap = useCallback((layout: number[]) => {
+    const chatSize = layout[0]
+    if (chatSize == null) return
+    const snapped = snapChatSize(chatSize)
+    if (Math.abs(snapped - chatSize) < 0.05) return
+    isSnappingRef.current = true
+    panelGroupRef.current?.setLayout([snapped, 100 - snapped])
+    queueMicrotask(() => {
+      isSnappingRef.current = false
+    })
+  }, [])
+
+  const onLayout = useCallback(
+    (layout: number[]) => {
+      if (!isDraggingRef.current || isSnappingRef.current) return
+      applySnap(layout)
+    },
+    [applySnap],
+  )
+
+  const onDragging = useCallback(
+    (dragging: boolean) => {
+      isDraggingRef.current = dragging
+      if (dragging) return
+      const layout = panelGroupRef.current?.getLayout()
+      if (layout) applySnap(layout)
+    },
+    [applySnap],
+  )
+
+  if (!canvasExpanded) {
+    return (
+      <div className="flex h-full min-h-0 flex-1 justify-center overflow-hidden bg-white">
+        <div className="flex h-full w-full max-w-3xl flex-col">
           <ChatPanel />
         </div>
       </div>
+    )
+  }
 
-      {canvasHasContent && (
-        <>
-          <div
-            className={`shrink-0 overflow-hidden transition-[width,opacity] ${WORKSPACE_TRANSITION} ${
-              canvasExpanded ? 'w-3 opacity-100' : 'w-0 opacity-0'
-            }`}
-            aria-hidden={!canvasExpanded}
-          >
-            <ResizeDivider />
+  return (
+    <PanelGroup
+      ref={panelGroupRef}
+      direction="horizontal"
+      autoSaveId="parley-workspace-split"
+      className="flex h-full min-h-0 flex-1 overflow-hidden bg-white"
+      onLayout={onLayout}
+    >
+      <Panel defaultSize={50} minSize={30} className="min-w-0">
+        <div className="flex h-full min-w-0 justify-center overflow-hidden">
+          <div className="flex h-full w-full max-w-2xl flex-col">
+            <ChatPanel />
           </div>
+        </div>
+      </Panel>
 
+      <ResizeDivider onDragging={onDragging} />
+
+      <Panel defaultSize={50} minSize={30} className="min-w-0">
+        <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden px-3 pb-3 pt-2">
           <div
-            className={`flex h-full min-h-0 min-w-0 flex-col overflow-hidden transition-[width,opacity] ${WORKSPACE_TRANSITION} ${
-              canvasExpanded
-                ? 'w-1/2 opacity-100'
-                : 'pointer-events-none w-0 opacity-0'
-            }`}
-            aria-hidden={!canvasExpanded}
+            className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface ${CANVAS_SHADOW}`}
           >
-            <div
-              className={`flex h-full min-h-0 flex-col px-3 pb-3 pt-2 transition-transform ${WORKSPACE_TRANSITION} ${
-                canvasExpanded ? 'translate-x-0' : 'translate-x-6'
-              }`}
-            >
-              <div
-                className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface ${CANVAS_SHADOW}`}
-              >
-                <CanvasPanel onClose={closeCanvas} />
-              </div>
-            </div>
+            <CanvasPanel onClose={closeCanvas} />
           </div>
-        </>
-      )}
-    </div>
+        </div>
+      </Panel>
+    </PanelGroup>
   )
 }

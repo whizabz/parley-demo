@@ -5,6 +5,7 @@ import { Workspace } from './components/workspace/Workspace'
 import { ValidationDrawer } from './components/shared/ValidationDrawer'
 import { ToastContainer } from './components/shared/ToastContainer'
 import { BookmarkDialog } from './components/shared/BookmarkDialog'
+import { LibraryModal } from './components/shared/LibraryModal'
 
 export default function App() {
   const view = useAppStore((s) => s.view)
@@ -15,6 +16,7 @@ export default function App() {
       <ValidationDrawer />
       <ToastContainer />
       <BookmarkDialog />
+      <LibraryModal />
     </>
   )
 }

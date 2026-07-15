@@ -23,6 +23,7 @@ export function VersionBanner() {
             version.favorited ? removeBookmark(version.id) : openBookmarkPrompt(version.id)
           }
           size="sm"
+          label={version.favorited ? 'Remove from library' : 'Save report'}
         />
       </div>
       <TextLink onClick={goToLatest}>Back to latest</TextLink>

@@ -1,4 +1,4 @@
-import { PanelLeft, SquarePen } from 'lucide-react'
+import { PanelLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { UserMenu } from './UserMenu'
 
@@ -6,10 +6,7 @@ interface AppHeaderProps {
   onLogoClick?: () => void
   children?: ReactNode
   sidebarOpen?: boolean
-  onSidebarIconMouseEnter?: () => void
-  onSidebarIconMouseLeave?: () => void
-  onSidebarIconClick?: () => void
-  onNewChat?: () => void
+  onToggleSidebar?: () => void
 }
 
 const iconButtonClass =
@@ -19,34 +16,20 @@ export function AppHeader({
   onLogoClick,
   children,
   sidebarOpen,
-  onSidebarIconMouseEnter,
-  onSidebarIconMouseLeave,
-  onSidebarIconClick,
-  onNewChat,
+  onToggleSidebar,
 }: AppHeaderProps) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between bg-white px-3 md:px-4">
       <div className="flex min-w-0 items-center gap-1">
-        {onSidebarIconMouseEnter && (
+        {onToggleSidebar && (
           <button
             type="button"
-            onMouseEnter={onSidebarIconMouseEnter}
-            onMouseLeave={onSidebarIconMouseLeave}
-            onClick={onSidebarIconClick}
+            onClick={onToggleSidebar}
             className={`${iconButtonClass} ${sidebarOpen ? 'bg-surface text-brand' : ''}`}
-            aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+            aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+            aria-expanded={sidebarOpen}
           >
             <PanelLeft className="h-5 w-5" />
-          </button>
-        )}
-        {onNewChat && (
-          <button
-            type="button"
-            onClick={onNewChat}
-            className={iconButtonClass}
-            aria-label="New chat"
-          >
-            <SquarePen className="h-5 w-5" />
           </button>
         )}
         <button

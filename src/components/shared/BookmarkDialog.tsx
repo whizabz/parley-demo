@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppStore } from '../../store/appStore'
-import { suggestBookmarkName } from '../../utils/suggestBookmarkName'
+import {
+  getArtifactKind,
+  getArtifactTypeLabel,
+  suggestArtifactName,
+} from '../../utils/artifacts'
 
 export function BookmarkDialog() {
   const bookmarkPromptVersionId = useAppStore((s) => s.bookmarkPromptVersionId)
@@ -20,10 +24,12 @@ export function BookmarkDialog() {
       : null
 
   const open = bookmarkPromptVersionId != null && version != null
+  const kind = version ? getArtifactKind(version) : 'dashboard'
+  const typeLabel = getArtifactTypeLabel(kind)
 
   useEffect(() => {
     if (!open || !version) return
-    setName(suggestBookmarkName(version.question, version.summary))
+    setName(suggestArtifactName(version))
     const timer = setTimeout(() => inputRef.current?.select(), 50)
     return () => clearTimeout(timer)
   }, [open, version])
@@ -47,17 +53,17 @@ export function BookmarkDialog() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="bookmark-dialog-title"
+        aria-labelledby="save-artifact-dialog-title"
         className="relative w-full max-w-sm rounded border border-border bg-white p-6 shadow-xl"
       >
-        <h3 id="bookmark-dialog-title" className="font-serif text-lg text-brand">
-          Bookmark this report
+        <h3 id="save-artifact-dialog-title" className="font-serif text-lg text-brand">
+          {kind === 'export' ? 'Save export' : 'Save report'}
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-body">
-          Save it for later with a name you&apos;ll recognize.
+          Add this {typeLabel.toLowerCase()} to your library so you can reopen it later.
         </p>
         <label className="mt-4 block">
-          <span className="text-xs font-medium text-border-form">Bookmark name</span>
+          <span className="text-xs font-medium text-border-form">Name</span>
           <input
             ref={inputRef}
             type="text"
@@ -68,7 +74,7 @@ export function BookmarkDialog() {
               if (e.key === 'Escape') cancelBookmarkPrompt()
             }}
             className="mt-1 w-full rounded border border-border-form/40 px-3 py-2 text-sm text-body outline-none focus:border-accent"
-            placeholder="Name this bookmark"
+            placeholder={kind === 'export' ? 'Name this export' : 'Name this report'}
           />
         </label>
         <div className="mt-6 flex justify-end gap-2">
@@ -85,7 +91,7 @@ export function BookmarkDialog() {
             disabled={!name.trim()}
             className="rounded bg-brand px-4 py-2 text-sm text-white hover:opacity-90 disabled:opacity-50"
           >
-            Save bookmark
+            Save
           </button>
         </div>
       </div>

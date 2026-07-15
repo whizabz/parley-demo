@@ -1,15 +1,7 @@
 import type { Conversation, Version } from '../types'
 
-export function getConversationPinVersion(conversation: Conversation) {
-  return (
-    conversation.versions.find((v) => v.favorited && v.bookmarkName) ??
-    conversation.versions.find((v) => v.favorited)
-  )
-}
-
 export function getConversationLabel(conversation: Conversation): string {
-  const bookmarked = conversation.versions.find((v) => v.favorited && v.bookmarkName)
-  if (bookmarked?.bookmarkName) return bookmarked.bookmarkName
+  if (conversation.customTitle?.trim()) return conversation.customTitle.trim()
   return conversation.title
 }
 
@@ -17,32 +9,65 @@ export function upsertConversation(
   conversations: Conversation[],
   id: string,
   versions: Version[],
+  options?: { touchActivity?: boolean },
 ): Conversation[] {
   if (versions.length === 0) return conversations
 
   const existing = conversations.find((c) => c.id === id)
-  const pinned = versions.some((v) => v.favorited) || existing?.pinned || false
+  const touchActivity = options?.touchActivity ?? false
   const updated: Conversation = {
     id,
     title: versions[0].question,
     versions: versions.map((v) => ({ ...v })),
     createdAt: existing?.createdAt ?? new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    pinned,
+    updatedAt: touchActivity
+      ? new Date().toISOString()
+      : (existing?.updatedAt ?? new Date().toISOString()),
+    pinned: existing?.archived ? false : (existing?.pinned ?? false),
+    pinnedAt: existing?.archived ? undefined : existing?.pinnedAt,
+    pinOrder: existing?.archived ? undefined : existing?.pinOrder,
+    hasUnread: existing?.hasUnread ?? false,
+    customTitle: existing?.customTitle,
+    archived: existing?.archived ?? false,
   }
 
   return [updated, ...conversations.filter((c) => c.id !== id)]
 }
 
-export function syncConversationPin(
+export function setConversationUnread(
+  conversations: Conversation[],
+  conversationId: string,
+  hasUnread: boolean,
+): Conversation[] {
+  return conversations.map((c) =>
+    c.id === conversationId ? { ...c, hasUnread } : c,
+  )
+}
+
+/** Syncs version snapshots into a conversation without changing pin or activity. */
+export function syncConversationVersions(
   conversations: Conversation[],
   conversationId: string | null,
   versions: Version[],
 ): Conversation[] {
   if (!conversationId) return conversations
-  const pinned = versions.some((v) => v.favorited)
   return conversations.map((c) =>
-    c.id === conversationId ? { ...c, pinned, versions: versions.map((v) => ({ ...v })) } : c,
+    c.id === conversationId ? { ...c, versions: versions.map((v) => ({ ...v })) } : c,
+  )
+}
+
+export function compactPinOrders(conversations: Conversation[]): Conversation[] {
+  const pinned = conversations
+    .filter((c) => c.pinned && !c.archived)
+    .sort((a, b) => {
+      const orderDelta = (a.pinOrder ?? Number.MAX_SAFE_INTEGER) - (b.pinOrder ?? Number.MAX_SAFE_INTEGER)
+      if (orderDelta !== 0) return orderDelta
+      return new Date(b.pinnedAt ?? b.updatedAt).getTime() - new Date(a.pinnedAt ?? a.updatedAt).getTime()
+    })
+
+  const orderMap = new Map(pinned.map((c, index) => [c.id, index]))
+  return conversations.map((c) =>
+    orderMap.has(c.id) ? { ...c, pinOrder: orderMap.get(c.id)! } : c,
   )
 }
 

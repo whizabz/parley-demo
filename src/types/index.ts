@@ -90,6 +90,8 @@ export interface Report {
 
 export type ResponseKind = 'text' | 'report'
 
+export type VersionFeedback = 'up' | 'down'
+
 export interface Version {
   id: string
   question: string
@@ -101,6 +103,8 @@ export interface Version {
   createdAt: string
   favorited: boolean
   bookmarkName?: string
+  feedback?: VersionFeedback | null
+  feedbackComment?: string
 }
 
 export interface Scenario {
@@ -157,6 +161,16 @@ export interface Conversation {
   title: string
   versions: Version[]
   createdAt: string
+  /** Last real chat activity (new question/answer), not mere open/view. */
   updatedAt: string
   pinned: boolean
+  /** When the chat was pinned; used until a manual reorder sets pinOrder. */
+  pinnedAt?: string
+  /** Manual pin stack order — lower values appear higher. Newly pinned get 0. */
+  pinOrder?: number
+  /** True when an answer finished while the user was away from this chat. */
+  hasUnread?: boolean
+  /** User-edited chat name; preferred over question title. */
+  customTitle?: string
+  archived?: boolean
 }

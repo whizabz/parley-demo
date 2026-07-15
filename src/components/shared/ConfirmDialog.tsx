@@ -4,6 +4,7 @@ interface ConfirmDialogProps {
   message: string
   confirmLabel?: string
   cancelLabel?: string
+  destructive?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -14,13 +15,14 @@ export function ConfirmDialog({
   message,
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
+  destructive = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
       <button
         type="button"
         className="absolute inset-0 bg-black/30"
@@ -48,7 +50,9 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded bg-brand px-4 py-2 text-sm text-white hover:opacity-90"
+            className={`rounded px-4 py-2 text-sm text-white hover:opacity-90 ${
+              destructive ? 'bg-red-700' : 'bg-brand'
+            }`}
           >
             {confirmLabel}
           </button>

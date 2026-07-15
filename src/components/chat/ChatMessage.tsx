@@ -1,10 +1,11 @@
-import { BarChart3 } from 'lucide-react'
+import { BarChart3, FileSpreadsheet } from 'lucide-react'
 import type { Version } from '../../types'
 import { useAppStore, useIsVersionLoading } from '../../store/appStore'
 import { isTextOnlyVersion, versionHasVisualization } from '../../utils/canvas'
+import { getArtifactKind, getArtifactTypeLabel } from '../../utils/artifacts'
 import { BookmarkButton } from '../shared/BookmarkButton'
-import { RefinementChips } from '../shared/RefinementChips'
 import { ChatWorkingIndicator } from './ChatWorkingIndicator'
+import { MessageFeedback } from './MessageFeedback'
 import { NarrativeText } from './NarrativeText'
 
 interface Props {
@@ -17,7 +18,6 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
   const setActiveVersion = useAppStore((s) => s.setActiveVersion)
   const openBookmarkPrompt = useAppStore((s) => s.openBookmarkPrompt)
   const removeBookmark = useAppStore((s) => s.removeBookmark)
-  const submitQuestion = useAppStore((s) => s.submitQuestion)
   const openCanvas = useAppStore((s) => s.openCanvas)
   const canvasOpen = useAppStore((s) => s.canvasOpen)
   const simulationPhase = useAppStore((s) => s.simulationPhase)
@@ -32,6 +32,9 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
   const hasVisualization = versionHasVisualization(version)
   const showVisualizationCard =
     !isLoading && hasVisualization && simulationPhase === 'complete'
+  const artifactKind = getArtifactKind(version)
+  const isExport = artifactKind === 'export'
+  const ArtifactIcon = isExport ? FileSpreadsheet : BarChart3
 
   return (
     <div className={`space-y-4 ${!isActive ? 'opacity-80' : ''}`}>
@@ -84,14 +87,19 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
                     className="flex w-full items-start gap-3 px-4 py-3 pr-11 text-left transition-colors hover:bg-highlight/20"
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-brand">
-                      <BarChart3 className="h-5 w-5" />
+                      <ArtifactIcon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium leading-snug text-brand">
-                        {version.report.triageLane === 'export' ? 'Export ready' : 'View dashboard'}
+                        {isExport ? 'Export ready' : 'View dashboard'}
                       </p>
+                      {isExport && version.report.exportFileName && (
+                        <p className="mt-0.5 truncate text-xs text-border-form">
+                          {version.report.exportFileName}
+                        </p>
+                      )}
                       <span className="mt-1.5 inline-block rounded-md bg-surface px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-border-form">
-                        v{versionNumber}
+                        {getArtifactTypeLabel(artifactKind)} · v{versionNumber}
                       </span>
                     </div>
                   </button>
@@ -105,6 +113,13 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
                           : openBookmarkPrompt(version.id)
                       }
                       size="sm"
+                      label={
+                        version.favorited
+                          ? 'Remove from library'
+                          : isExport
+                            ? 'Save export'
+                            : 'Save report'
+                      }
                     />
                   </div>
                 </div>
@@ -121,11 +136,12 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
                       version.favorited ? removeBookmark(version.id) : openBookmarkPrompt(version.id)
                     }
                     size="sm"
+                    label={version.favorited ? 'Remove from library' : 'Save report'}
                   />
                 </div>
               )}
 
-              <RefinementChips chips={version.refinementChips} onSelect={submitQuestion} />
+              <MessageFeedback version={version} />
             </div>
           </>
         )}
