@@ -1,4 +1,5 @@
 import { useAppStore, useActiveVersion, useIsLatestVersion } from '../../store/appStore'
+import { getArtifactDisplayName } from '../../utils/artifacts'
 import { BookmarkButton } from '../shared/BookmarkButton'
 import { TextLink } from '../shared/TextLink'
 
@@ -15,7 +16,8 @@ export function VersionBanner() {
     <div className="flex items-center justify-between border-b border-border bg-highlight px-4 py-3">
       <div className="flex items-center gap-3">
         <p className="text-sm text-body">
-          Viewing: <span className="font-medium text-brand">{version.question}</span>
+          Viewing:{' '}
+          <span className="font-medium text-brand">{getArtifactDisplayName(version)}</span>
         </p>
         <BookmarkButton
           bookmarked={version.favorited}

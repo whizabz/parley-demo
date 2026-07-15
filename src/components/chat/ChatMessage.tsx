@@ -2,7 +2,11 @@ import { BarChart3, FileSpreadsheet } from 'lucide-react'
 import type { Version } from '../../types'
 import { useAppStore, useIsVersionLoading } from '../../store/appStore'
 import { isTextOnlyVersion, versionHasVisualization } from '../../utils/canvas'
-import { getArtifactKind, getArtifactTypeLabel } from '../../utils/artifacts'
+import {
+  getArtifactDisplayName,
+  getArtifactKind,
+  getArtifactTypeLabel,
+} from '../../utils/artifacts'
 import { BookmarkButton } from '../shared/BookmarkButton'
 import { ChatWorkingIndicator } from './ChatWorkingIndicator'
 import { ClarificationPrompt } from './ClarificationPrompt'
@@ -107,14 +111,9 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
                       <ArtifactIcon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium leading-snug text-brand">
-                        {isExport ? 'Export ready' : 'View report'}
+                      <p className="truncate text-sm font-medium leading-snug text-brand">
+                        {getArtifactDisplayName(version)}
                       </p>
-                      {isExport && version.report.exportFileName && (
-                        <p className="mt-0.5 truncate text-xs text-border-form">
-                          {version.report.exportFileName}
-                        </p>
-                      )}
                       <span className="mt-1.5 inline-block rounded-md bg-surface px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-border-form">
                         {getArtifactTypeLabel(artifactKind)} · v{versionNumber}
                       </span>

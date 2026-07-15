@@ -1,6 +1,6 @@
 import { BarChart3, Bookmark, ShieldCheck, Download, X } from 'lucide-react'
 import { useAppStore, useActiveVersion, useIsActiveVersionLoading } from '../../store/appStore'
-import { getArtifactKind } from '../../utils/artifacts'
+import { getArtifactDisplayName, getArtifactKind } from '../../utils/artifacts'
 import { VersionBanner } from './VersionBanner'
 import { SimilarReportPrompt } from './SimilarReportPrompt'
 import { ExportResult } from './ExportResult'
@@ -40,7 +40,7 @@ export function CanvasPanel({ onClose }: CanvasPanelProps) {
         <div className="flex min-w-0 items-center gap-2">
           <BarChart3 className="h-4 w-4 shrink-0 text-brand" />
           <span className="truncate text-sm font-medium text-brand">
-            {version?.report.domain ?? 'Canvas'}
+            {version ? getArtifactDisplayName(version) : 'Canvas'}
           </span>
         </div>
         <div className="flex items-center gap-2">

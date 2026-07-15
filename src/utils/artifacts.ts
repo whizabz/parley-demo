@@ -13,10 +13,22 @@ export function getArtifactTypeLabel(kind: ArtifactKind): string {
 
 export function getArtifactDisplayName(version: Version): string {
   if (version.bookmarkName?.trim()) return version.bookmarkName.trim()
-  if (getArtifactKind(version) === 'export' && version.report.exportFileName) {
-    return version.report.exportFileName
-  }
-  return version.question
+  return suggestArtifactName(version)
+}
+
+function shortenResponseTitle(summary: string): string {
+  const clean = summary.replace(/\.$/, '').trim()
+  if (!clean) return ''
+
+  // Prefer the lead clause of the response (before dash/colon/comma elaboration).
+  const lead =
+    clean.split(/\s+[—–]\s+|:\s+/)[0]?.trim() ||
+    clean.split(/,\s+/)[0]?.trim() ||
+    clean
+
+  if (lead.length <= 48) return lead
+  if (clean.length <= 48) return clean
+  return `${clean.slice(0, 45).trimEnd()}…`
 }
 
 export function suggestArtifactName(version: Version): string {
@@ -24,11 +36,8 @@ export function suggestArtifactName(version: Version): string {
     return version.report.exportFileName ?? `${version.report.domain}_export.csv`
   }
 
-  const summary = version.summary
-  if (summary) {
-    const condensed = summary.replace(/\.$/, '').trim()
-    if (condensed.length <= 80) return condensed
-  }
+  const fromResponse = shortenResponseTitle(version.summary ?? '')
+  if (fromResponse) return fromResponse
 
   let name = version.question.trim().replace(/\?+$/, '')
   name = name.replace(
@@ -36,7 +45,7 @@ export function suggestArtifactName(version: Version): string {
     '',
   )
   name = name.charAt(0).toUpperCase() + name.slice(1)
-  if (name.length > 80) return `${name.slice(0, 77)}…`
+  if (name.length > 48) return `${name.slice(0, 45).trimEnd()}…`
   return name
 }
 
