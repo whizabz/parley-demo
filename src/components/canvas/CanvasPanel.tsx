@@ -69,7 +69,7 @@ export function CanvasPanel({ onClose }: CanvasPanelProps) {
               {!isExport && (
                 <button
                   type="button"
-                  onClick={() => addToast('Export started — dashboard PDF will download shortly.')}
+                  onClick={() => addToast('Export started — report PDF will download shortly.')}
                   className="flex items-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-highlight"
                 >
                   <Download className="h-3.5 w-3.5" />

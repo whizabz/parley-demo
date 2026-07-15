@@ -108,7 +108,7 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium leading-snug text-brand">
-                        {isExport ? 'Export ready' : 'View dashboard'}
+                        {isExport ? 'Export ready' : 'View report'}
                       </p>
                       {isExport && version.report.exportFileName && (
                         <p className="mt-0.5 truncate text-xs text-border-form">

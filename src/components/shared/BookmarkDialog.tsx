@@ -24,7 +24,7 @@ export function BookmarkDialog() {
       : null
 
   const open = bookmarkPromptVersionId != null && version != null
-  const kind = version ? getArtifactKind(version) : 'dashboard'
+  const kind = version ? getArtifactKind(version) : 'report'
   const typeLabel = getArtifactTypeLabel(kind)
 
   useEffect(() => {

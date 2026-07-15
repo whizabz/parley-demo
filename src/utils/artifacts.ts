@@ -1,14 +1,14 @@
 import type { Report, Version } from '../types'
 
-export type ArtifactKind = 'dashboard' | 'export'
+export type ArtifactKind = 'report' | 'export'
 
 export function getArtifactKind(version: Pick<Version, 'report'> | null | undefined): ArtifactKind {
   if (version?.report.triageLane === 'export') return 'export'
-  return 'dashboard'
+  return 'report'
 }
 
 export function getArtifactTypeLabel(kind: ArtifactKind): string {
-  return kind === 'export' ? 'CSV' : 'Dashboard'
+  return kind === 'export' ? 'CSV' : 'Report'
 }
 
 export function getArtifactDisplayName(version: Version): string {

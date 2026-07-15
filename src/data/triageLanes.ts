@@ -8,7 +8,7 @@ export const TRIAGE_LANE_INFO: Record<
     label: 'Instant',
     scale: 'Up to 1,000 records',
     scaleAbbrev: '≤1K',
-    summary: 'Fast answers for smaller datasets that fit in a live dashboard.',
+    summary: 'Fast answers for smaller datasets that fit in a live report.',
   },
   background: {
     label: 'Background',
@@ -35,7 +35,7 @@ export function getTriageExplanation(triageLane: TriageLane): string | null {
     return `Running in the background because this pull spans ${TRIAGE_LANE_INFO.background.scale.toLowerCase()} — more than an instant report can return in one pass.`
   }
   if (triageLane === 'export') {
-    return `Delivered as an export because the result set is ${TRIAGE_LANE_INFO.export.scale.toLowerCase()} — too large to show as dashboard tiles.`
+    return `Delivered as an export because the result set is ${TRIAGE_LANE_INFO.export.scale.toLowerCase()} — too large to show as report tiles.`
   }
   return null
 }

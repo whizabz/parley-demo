@@ -164,7 +164,7 @@ export function LibraryModal() {
               aria-label="Filter by type"
             >
               <option value="all">All types</option>
-              <option value="dashboard">Dashboards</option>
+              <option value="report">Reports</option>
               <option value="export">CSVs</option>
             </SelectField>
 
@@ -185,7 +185,7 @@ export function LibraryModal() {
             <div className="flex h-40 flex-col items-center justify-center px-4 text-center">
               <p className="text-sm font-medium text-brand">No artifacts yet</p>
               <p className="mt-1 max-w-sm text-sm text-border-form">
-                Save a dashboard or CSV from a response to keep it here.
+                Save a report or CSV from a response to keep it here.
               </p>
             </div>
           ) : items.length === 0 ? (

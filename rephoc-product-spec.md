@@ -2,9 +2,9 @@
 
 ## Overview
 
-Parley is a conversational, AI-native interface for ad hoc reporting over insurance data. A person asks a question in plain language. The system answers with a short narrative interpretation and a generated dashboard of cards (charts, metrics, tables, insight text). The person can keep asking follow-up questions, each producing a new version of the report, with full history preserved and revisitable.
+Parley is a conversational, AI-native interface for ad hoc reporting over insurance data. A person asks a question in plain language. The system answers with a short narrative interpretation and a generated report of cards (charts, metrics, tables, insight text). The person can keep asking follow-up questions, each producing a new version of the report, with full history preserved and revisitable.
 
-The experience should never feel like a BI tool with a chat bolted on. It should feel like talking to an analyst who happens to produce dashboards as part of the conversation — calm, minimal at rest, and only as complex as the moment requires. The user should never be routed out of this interface into a separate backend tool (Databricks or otherwise) at any point in the flow, regardless of how the query is actually fulfilled behind the scenes.
+The experience should never feel like a BI tool with a chat bolted on. It should feel like talking to an analyst who happens to produce reports as part of the conversation — calm, minimal at rest, and only as complex as the moment requires. The user should never be routed out of this interface into a separate backend tool (Databricks or otherwise) at any point in the flow, regardless of how the query is actually fulfilled behind the scenes.
 
 ---
 
@@ -76,17 +76,17 @@ Questions are asked against a **domain** (claims, underwriting, policy, etc.), n
 
 ### 2.2 Query triage: instant, background, or export-only
 
-Not every question can or should produce an instant dashboard. Before committing to a response shape, the system classifies the incoming question into one of three lanes and tells the user which lane it took:
+Not every question can or should produce an instant report. Before committing to a response shape, the system classifies the incoming question into one of three lanes and tells the user which lane it took:
 
-1. **Instant** — the default path. Thinking sequence runs, dashboard renders in the canvas within seconds.
-2. **Background job** — the question requires heavier processing than makes sense to block on. The chat response says so plainly ("This is a bigger pull — I'll keep working and let you know when it's ready"). The canvas shows a persistent in-progress state distinct from the instant-path skeleton sequence (since this may take materially longer). When the report is ready, an in-app notification (toast or badge) tells the user; opening it reveals the finished dashboard exactly as the instant path would have.
-3. **Export-only** — the result set is too large or too unstructured for a dashboard to be the right shape of answer at all (e.g., "every claim line item for the last five years"). No dashboard is attempted. The response explains why ("This pulls a lot of raw data — better as a file than a dashboard") and produces a downloadable export directly, with a clear file format and size indicated.
+1. **Instant** — the default path. Thinking sequence runs, report renders in the canvas within seconds.
+2. **Background job** — the question requires heavier processing than makes sense to block on. The chat response says so plainly ("This is a bigger pull — I'll keep working and let you know when it's ready"). The canvas shows a persistent in-progress state distinct from the instant-path skeleton sequence (since this may take materially longer). When the report is ready, an in-app notification (toast or badge) tells the user; opening it reveals the finished report exactly as the instant path would have.
+3. **Export-only** — the result set is too large or too unstructured for a report to be the right shape of answer at all (e.g., "every claim line item for the last five years"). No report is attempted. The response explains why ("This pulls a lot of raw data — better as a file than a report") and produces a downloadable export directly, with a clear file format and size indicated.
 
 All three lanes use the same conversational voice and visual language — only the waiting and result experience differs between them. The classification should be visible and explained to the user as it happens, never a silent backend decision.
 
 ### 2.3 Export
 
-Every report — whether reused, instantly generated, produced via a background job, or export-only by classification — carries a consistent export action: CSV/Excel for tabular data, and a way to export the dashboard view itself (PDF or image) for sharing. This lives as a single, predictable action per version rather than scattered per-card controls.
+Every report — whether reused, instantly generated, produced via a background job, or export-only by classification — carries a consistent export action: CSV/Excel for tabular data, and a way to export the report view itself (PDF or image) for sharing. This lives as a single, predictable action per version rather than scattered per-card controls.
 
 ### 2.4 Provenance and validation
 
@@ -125,7 +125,7 @@ Some users should not see certain domains, reports, or underlying data sources a
 
 ## 4. Voice and visual language
 
-- Calm, minimal, AI-native — never a dashboard tool with a chat window attached
+- Calm, minimal, AI-native — never a report tool with a chat window attached
 - Two type families: a serif for the AI's own voice (narrative responses, headline) and a clean sans for UI chrome, numbers, and structural text
 - A soft white-to-blue gradient wash across the background; card surfaces float above it with light shadows rather than hard borders
 - Motion is used deliberately: thinking/loading states feel like a stream of thought rather than a generic progress bar; cards rise and fade in rather than popping; the home-screen avatar drifts and breathes slowly and organically, never mechanically (no spinning or rotating motion — drifting blob-like movement instead)
