@@ -2,6 +2,13 @@ export type TriageLane = 'instant' | 'background' | 'export'
 export type DemoMode = TriageLane | 'reused'
 export type ReportStatus = 'generating' | 'ready' | 'failed'
 export type ReportOrigin = 'generated' | 'reused'
+export type FailureKind = 'system' | 'access-denied' | 'partial'
+export type AccessRequestStatus =
+  | 'idle'
+  | 'pending'
+  | 'granted'
+  | 'one-off-pending'
+  | 'one-off-delivered'
 
 export interface DataSource {
   id: string
@@ -88,7 +95,7 @@ export interface Report {
   exportFileSize?: string
 }
 
-export type ResponseKind = 'text' | 'report' | 'clarify'
+export type ResponseKind = 'text' | 'report' | 'clarify' | 'failure'
 
 export type VersionFeedback = 'up' | 'down'
 
@@ -100,6 +107,14 @@ export interface ClarificationOption {
   /** When true, the user types a custom follow-up instead. */
   allowsCustom?: boolean
 }
+
+export type FailureActionId =
+  | 'retry'
+  | 'request-access'
+  | 'one-off'
+  | 'narrow'
+  | 'run-again'
+  | 'request-full-access'
 
 export interface Version {
   id: string
@@ -117,6 +132,16 @@ export interface Version {
   clarificationOptions?: ClarificationOption[]
   /** Option id chosen when this was a clarify turn. */
   selectedClarificationId?: string
+  failureKind?: FailureKind
+  restrictedSources?: string[]
+  /** Owning team shown on access-request copy. */
+  restrictedSourceOwner?: string
+  /** Narrower follow-up that stays within allowed data. */
+  narrowQuestion?: string
+  /** Scenario used when retry / access / one-off succeeds. */
+  recoveryScenarioId?: string
+  accessRequestStatus?: AccessRequestStatus
+  selectedFailureActionId?: FailureActionId
 }
 
 export interface Scenario {
@@ -135,6 +160,11 @@ export interface Scenario {
   exportFileName?: string
   exportFileSize?: string
   clarificationOptions?: ClarificationOption[]
+  failureKind?: FailureKind
+  restrictedSources?: string[]
+  restrictedSourceOwner?: string
+  narrowQuestion?: string
+  recoveryScenarioId?: string
 }
 
 export interface SuggestedPrompt {
@@ -162,6 +192,9 @@ export type TriageOutcome =
   | 'instant'
   | 'background'
   | 'export'
+  | 'system-failure'
+  | 'access-denied'
+  | 'partial'
 
 export type PipelineStepVariant = 'default' | 'alert'
 

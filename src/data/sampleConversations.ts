@@ -15,6 +15,8 @@ function versionFromScenario(
     responseKind?: Version['responseKind']
     exportFileName?: string
     exportFileSize?: string
+    accessRequestStatus?: Version['accessRequestStatus']
+    selectedFailureActionId?: Version['selectedFailureActionId']
   },
 ): Version {
   const scenario = scenarios.find((s) => s.id === scenarioId)
@@ -22,13 +24,21 @@ function versionFromScenario(
 
   const report = scenarioToReport(scenario)
   report.id = `sample-report-${opts.versionId}`
-  report.status = 'ready'
+  if (!scenario.failureKind || scenario.failureKind === 'partial') {
+    report.status = 'ready'
+  }
 
-  if (opts.responseKind === 'text') {
+  if (opts.responseKind === 'text' || opts.responseKind === 'failure') {
     report.cards = []
   }
   if (opts.exportFileName) report.exportFileName = opts.exportFileName
   if (opts.exportFileSize) report.exportFileSize = opts.exportFileSize
+
+  const responseKind =
+    opts.responseKind ??
+    (scenario.failureKind === 'system' || scenario.failureKind === 'access-denied'
+      ? 'failure'
+      : 'report')
 
   return {
     id: opts.versionId,
@@ -37,10 +47,18 @@ function versionFromScenario(
     report,
     narrative: scenario.narrative,
     refinementChips: scenario.refinementChips,
-    responseKind: opts.responseKind ?? 'report',
+    responseKind,
     createdAt: opts.createdAt,
     favorited: opts.favorited ?? false,
     bookmarkName: opts.bookmarkName,
+    failureKind: scenario.failureKind,
+    restrictedSources: scenario.restrictedSources,
+    restrictedSourceOwner: scenario.restrictedSourceOwner,
+    narrowQuestion: scenario.narrowQuestion,
+    recoveryScenarioId: scenario.recoveryScenarioId,
+    accessRequestStatus:
+      opts.accessRequestStatus ?? (scenario.failureKind ? 'idle' : undefined),
+    selectedFailureActionId: opts.selectedFailureActionId,
   }
 }
 
@@ -155,6 +173,24 @@ export const sampleConversations: Conversation[] = [
     }),
     false,
     daysAgo(8),
+  ),
+  conversation(
+    'sample-conv-access-denied',
+    versionFromScenario('access-denied-actuarial', {
+      versionId: 'sample-ver-access-denied',
+      createdAt: daysAgo(0.15),
+    }),
+    false,
+    daysAgo(0.15),
+  ),
+  conversation(
+    'sample-conv-system-failure',
+    versionFromScenario('system-failure-reserves', {
+      versionId: 'sample-ver-system-failure',
+      createdAt: daysAgo(0.6),
+    }),
+    false,
+    daysAgo(0.6),
   ),
 ]
 

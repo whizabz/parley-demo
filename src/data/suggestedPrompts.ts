@@ -14,6 +14,24 @@ export const suggestedPrompts: SuggestedPrompt[] = [
     question: 'Can you analyze our claims performance?',
   },
   {
+    id: 'system-failure-reserves',
+    title: 'Show IBNR reserve adequacy by line',
+    description: 'Demo: system failure with retry that persists in the thread.',
+    question: 'Show IBNR reserve adequacy by line of business',
+  },
+  {
+    id: 'access-denied-actuarial',
+    title: 'Show reserve model projections',
+    description: 'Demo: access denied — request access, one-off, or narrow.',
+    question: 'Show reserve model projections for commercial auto',
+  },
+  {
+    id: 'partial-access-severity',
+    title: 'Claim severity with reserve context',
+    description: 'Demo: partial answer when some sources are restricted.',
+    question: "What's driving claim severity, including reserve model context?",
+  },
+  {
     id: 'claims-region',
     title: 'How do claims by region compare to last year?',
     description: 'Regional volume and year-over-year change across markets.',
@@ -120,13 +138,13 @@ export const suggestedPrompts: SuggestedPrompt[] = [
 /** Curated starters for the home empty state (demo-friendly mix of answers/reports). */
 const HOME_STARTER_IDS = [
   'loss-ratio',
+  'access-denied-actuarial',
+  'system-failure-reserves',
+  'partial-access-severity',
   'clarify-claims-scope',
   'claims-volume-reuse',
   'export-claims',
   'retention-cohort',
-  'claims-region',
-  'premium-retention',
-  'severity-q2',
 ] as const
 
 export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) => {
@@ -138,10 +156,10 @@ export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) =
 /** Placeholders rotate through these when the home input is idle (typed as real questions). */
 export const homePlaceholderExamples = [
   "What's our loss ratio trend this year?",
+  'Show reserve model projections for commercial auto',
+  'Show IBNR reserve adequacy by line of business',
+  "What's driving claim severity, including reserve model context?",
   'Can you analyze our claims performance?',
-  'How do claims by region compare to last year?',
-  'Show claims volume by region',
-  'Pull every claim line item for the last five years',
 ]
 
 export function filterHomePrompts(query: string, limit = 5): SuggestedPrompt[] {

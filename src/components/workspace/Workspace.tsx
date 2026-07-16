@@ -102,10 +102,8 @@ export function Workspace() {
 
   if (!canvasExpanded) {
     return (
-      <div className="flex h-full min-h-0 flex-1 justify-center overflow-hidden bg-white">
-        <div className="flex h-full w-full max-w-3xl flex-col">
-          <ChatPanel />
-        </div>
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-white">
+        <ChatPanel />
       </div>
     )
   }

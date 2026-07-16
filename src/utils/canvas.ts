@@ -1,13 +1,32 @@
 import type { SimulationPhase, Version } from '../types'
 
 export function versionHasVisualization(version: Version): boolean {
-  if (version.responseKind === 'text' || version.responseKind === 'clarify') return false
+  if (
+    version.responseKind === 'text' ||
+    version.responseKind === 'clarify' ||
+    version.responseKind === 'failure'
+  ) {
+    return false
+  }
+  if (version.report.status === 'failed') return false
   if (version.report.triageLane === 'export') return true
   return version.report.cards.length > 0
 }
 
 export function isTextOnlyVersion(version: Version): boolean {
-  return version.responseKind === 'text' || version.responseKind === 'clarify'
+  return (
+    version.responseKind === 'text' ||
+    version.responseKind === 'clarify' ||
+    version.responseKind === 'failure'
+  )
+}
+
+export function isFailureVersion(version: Version): boolean {
+  return (
+    version.responseKind === 'failure' ||
+    version.failureKind === 'partial' ||
+    version.report.status === 'failed'
+  )
 }
 
 export function shouldAutoOpenCanvas(

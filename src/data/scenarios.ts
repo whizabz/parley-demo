@@ -520,6 +520,95 @@ export const scenarios: Scenario[] = [
       },
     ],
   },
+  {
+    id: 'system-failure-reserves',
+    summary: 'Temporary issue — couldn’t finish this pull',
+    matchPatterns: [
+      'ibnr reserve adequacy',
+      'reserve adequacy by line',
+      'system failure',
+      'temporary issue with reserves',
+    ],
+    question: 'Show IBNR reserve adequacy by line of business',
+    triageLane: 'instant',
+    origin: 'generated',
+    domain: 'claims',
+    narrative: [
+      {
+        text: 'I couldn’t finish this pull — looks like a temporary system issue on our side.',
+        type: 'interpretation',
+      },
+      {
+        text: 'Please try again when you’re ready.',
+        type: 'interpretation',
+      },
+    ],
+    refinementChips: [],
+    cards: [],
+    failureKind: 'system',
+    recoveryScenarioId: 'loss-ratio',
+  },
+  {
+    id: 'access-denied-actuarial',
+    summary: 'Access needed for Actuarial Reserve Model',
+    matchPatterns: [
+      'actuarial reserve model',
+      'reserve model projections',
+      'access denied',
+      'without permission',
+    ],
+    question: 'Show reserve model projections for commercial auto',
+    triageLane: 'instant',
+    origin: 'generated',
+    domain: 'claims',
+    narrative: [
+      {
+        text: 'I found the right path for this — but you don’t currently have access to Actuarial Reserve Model.',
+        type: 'interpretation',
+      },
+      {
+        text: 'You can request standing access, ask for a one-off answer without changing permissions, or rephrase to stay within data you can see.',
+        type: 'interpretation',
+      },
+    ],
+    refinementChips: [],
+    cards: [],
+    failureKind: 'access-denied',
+    restrictedSources: ['Actuarial Reserve Model'],
+    restrictedSourceOwner: 'Actuarial',
+    narrowQuestion: "What's our loss ratio trend this year?",
+    recoveryScenarioId: 'loss-ratio',
+  },
+  {
+    id: 'partial-access-severity',
+    summary: 'Partial answer — reserve model excluded',
+    matchPatterns: [
+      'severity including reserve',
+      'severity with reserve context',
+      'partial access',
+      'claims severity with reserves',
+    ],
+    question: "What's driving claim severity, including reserve model context?",
+    triageLane: 'instant',
+    origin: 'generated',
+    domain: 'claims',
+    narrative: [
+      {
+        text: 'Answer uses Claims Ledger and Adjuster Notes only — Actuarial Reserve Model is restricted for your account.',
+        type: 'fact',
+      },
+      {
+        text: 'Severity is up 8.4% QoQ, concentrated in commercial auto large losses. Without the reserve model, adequacy and development context are missing from this view.',
+        type: 'interpretation',
+      },
+    ],
+    refinementChips: ['Break down by region', 'Show large-loss contributors', 'Filter to commercial auto'],
+    cards: [lossRatioMetric, lossRatioInsight, regionBarChart],
+    failureKind: 'partial',
+    restrictedSources: ['Actuarial Reserve Model'],
+    restrictedSourceOwner: 'Actuarial',
+    recoveryScenarioId: 'loss-ratio',
+  },
 ]
 
 export function findScenario(input: string): Scenario | null {
@@ -623,12 +712,14 @@ export function getReuseTemplate(): Scenario {
 }
 
 export function scenarioToReport(scenario: Scenario): import('../types').Report {
+  const failed =
+    scenario.failureKind === 'system' || scenario.failureKind === 'access-denied'
   return {
     id: `report-${scenario.id}-${Date.now()}`,
     question: scenario.question,
     domain: scenario.domain,
     triageLane: scenario.triageLane,
-    status: 'ready',
+    status: failed ? 'failed' : 'ready',
     origin: scenario.origin,
     originalReportRef: scenario.originalReportRef,
     cards: scenario.cards,

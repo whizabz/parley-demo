@@ -4,6 +4,8 @@ import { useShallow } from 'zustand/react/shallow'
 import type {
   Conversation,
   DemoMode,
+  FailureActionId,
+  NarrativeSegment,
   ResponseKind,
   SimulationPhase,
   Toast,
@@ -111,6 +113,12 @@ interface AppState {
     optionId: string,
     customText?: string,
   ) => void
+  resolveFailureAction: (versionId: string, actionId: FailureActionId) => void
+  startRecoveryQuestion: (
+    question: string,
+    recoveryScenarioId: string,
+    opts?: { oneOff?: boolean; afterAccess?: boolean },
+  ) => void
 }
 
 function makeVersion(
@@ -119,7 +127,11 @@ function makeVersion(
   responseKind: ResponseKind = 'report',
 ): Version {
   const report = scenarioToReport(scenario)
-  if (responseKind === 'text' || responseKind === 'clarify') {
+  if (
+    responseKind === 'text' ||
+    responseKind === 'clarify' ||
+    responseKind === 'failure'
+  ) {
     report.cards = []
   }
   return {
@@ -128,16 +140,29 @@ function makeVersion(
     summary: scenario.summary,
     report,
     narrative: scenario.narrative,
-    refinementChips: responseKind === 'clarify' ? [] : scenario.refinementChips,
+    refinementChips:
+      responseKind === 'clarify' || responseKind === 'failure'
+        ? []
+        : scenario.refinementChips,
     responseKind,
     createdAt: new Date().toISOString(),
     favorited: false,
     clarificationOptions:
       responseKind === 'clarify' ? scenario.clarificationOptions : undefined,
+    failureKind: scenario.failureKind,
+    restrictedSources: scenario.restrictedSources,
+    restrictedSourceOwner: scenario.restrictedSourceOwner,
+    narrowQuestion: scenario.narrowQuestion,
+    recoveryScenarioId: scenario.recoveryScenarioId,
+    accessRequestStatus: scenario.failureKind ? 'idle' : undefined,
   }
 }
 
-function patchVersionFromScenario(version: Version, scenario: ReturnType<typeof resolveScenario>, question: string): Version {
+function patchVersionFromScenario(
+  version: Version,
+  scenario: ReturnType<typeof resolveScenario>,
+  question: string,
+): Version {
   const report = scenarioToReport({ ...scenario, question })
   return {
     ...version,
@@ -150,7 +175,13 @@ function patchVersionFromScenario(version: Version, scenario: ReturnType<typeof 
 }
 
 function chipsFromVersion(version: Version | undefined | null): string[] | null {
-  if (!version || version.responseKind === 'clarify') return null
+  if (
+    !version ||
+    version.responseKind === 'clarify' ||
+    version.responseKind === 'failure'
+  ) {
+    return null
+  }
   if (!version.refinementChips?.length) return null
   return [...version.refinementChips]
 }
@@ -186,9 +217,17 @@ function applyQuestion(
   existingVersions: Version[],
 ) {
   const responseKind: ResponseKind =
-    triageOutcome === 'text' ? 'text' : triageOutcome === 'clarify' ? 'clarify' : 'report'
+    triageOutcome === 'text'
+      ? 'text'
+      : triageOutcome === 'clarify'
+        ? 'clarify'
+        : triageOutcome === 'system-failure' || triageOutcome === 'access-denied'
+          ? 'failure'
+          : 'report'
   const cost =
-    responseKind === 'text' || responseKind === 'clarify'
+    responseKind === 'text' ||
+    responseKind === 'clarify' ||
+    responseKind === 'failure'
       ? 0
       : CREDIT_COSTS[
           scenario.triageLane === 'export'
@@ -227,6 +266,30 @@ function isSimulationActive(phase: SimulationPhase): boolean {
     phase === 'revealing' ||
     phase === 'triage-prompt'
   )
+}
+
+function findScenarioById(id: string) {
+  return scenarios.find((s) => s.id === id) ?? scenarios[0]
+}
+
+function withOneOffNarrative(narrative: NarrativeSegment[]): NarrativeSegment[] {
+  return [
+    {
+      text: 'One-off exception approved — answering once without changing your standing permissions.',
+      type: 'interpretation',
+    },
+    ...narrative,
+  ]
+}
+
+function withFullAccessNarrative(narrative: NarrativeSegment[]): NarrativeSegment[] {
+  return [
+    {
+      text: 'Running again with your newly granted access.',
+      type: 'interpretation',
+    },
+    ...narrative,
+  ]
 }
 
 export const useAppStore = create<AppState>()(
@@ -788,7 +851,10 @@ export const useAppStore = create<AppState>()(
         })
 
         if (markReady && !alreadyNotified) {
-          get().addToast('Your answer is ready.')
+          const failed = latestVersion?.report.status === 'failed'
+          get().addToast(
+            failed ? 'Your request needs attention.' : 'Your answer is ready.',
+          )
         }
       },
 
@@ -853,6 +919,185 @@ export const useAppStore = create<AppState>()(
         }))
         set(patched)
         get().submitQuestion(nextQuestion)
+      },
+
+      resolveFailureAction: (versionId, actionId) => {
+        const s = get()
+        const version = s.versions.find((v) => v.id === versionId)
+        if (!version?.failureKind) return
+
+        const status = version.accessRequestStatus ?? 'idle'
+
+        if (actionId === 'run-again') {
+          if (status !== 'granted') return
+        } else if (version.selectedFailureActionId) {
+          return
+        }
+
+        const owner = version.restrictedSourceOwner ?? 'the owning team'
+        const sources = version.restrictedSources?.join(', ') ?? 'restricted sources'
+        const recoveryId = version.recoveryScenarioId ?? 'loss-ratio'
+
+        if (actionId === 'retry') {
+          const patched = patchVersionEverywhere(s, versionId, (v) => ({
+            ...v,
+            selectedFailureActionId: 'retry',
+          }))
+          set(patched)
+          get().startRecoveryQuestion(version.question, recoveryId)
+          return
+        }
+
+        if (actionId === 'narrow') {
+          const nextQuestion = version.narrowQuestion?.trim()
+          if (!nextQuestion) return
+          const patched = patchVersionEverywhere(s, versionId, (v) => ({
+            ...v,
+            selectedFailureActionId: 'narrow',
+          }))
+          set(patched)
+          get().submitQuestion(nextQuestion)
+          return
+        }
+
+        if (actionId === 'request-access' || actionId === 'request-full-access') {
+          const patched = patchVersionEverywhere(s, versionId, (v) => ({
+            ...v,
+            selectedFailureActionId: actionId,
+            accessRequestStatus: 'pending',
+          }))
+          set(patched)
+          get().addToast(`Access request sent to ${owner}.`)
+
+          window.setTimeout(() => {
+            const current = get()
+            const stillThere =
+              current.versions.find((v) => v.id === versionId) ??
+              current.conversations
+                .flatMap((c) => c.versions)
+                .find((v) => v.id === versionId)
+            if (!stillThere || stillThere.accessRequestStatus !== 'pending') return
+
+            const granted = patchVersionEverywhere(get(), versionId, (v) => ({
+              ...v,
+              accessRequestStatus: 'granted',
+            }))
+            set(granted)
+
+            const focused =
+              get().view === 'workspace' &&
+              get().versions.some((v) => v.id === versionId)
+            if (!focused) {
+              const conv = get().conversations.find((c) =>
+                c.versions.some((v) => v.id === versionId),
+              )
+              if (conv) {
+                set({
+                  conversations: setConversationUnread(
+                    get().conversations,
+                    conv.id,
+                    true,
+                  ),
+                })
+              }
+            }
+            get().addToast(
+              `Access approved for ${sources}. Open the chat to run again.`,
+            )
+          }, 4500)
+          return
+        }
+
+        if (actionId === 'one-off') {
+          const patched = patchVersionEverywhere(s, versionId, (v) => ({
+            ...v,
+            selectedFailureActionId: 'one-off',
+            accessRequestStatus: 'one-off-pending',
+          }))
+          set(patched)
+          get().addToast('One-off request submitted.')
+
+          window.setTimeout(() => {
+            const delivered = patchVersionEverywhere(get(), versionId, (v) => ({
+              ...v,
+              accessRequestStatus: 'one-off-delivered',
+            }))
+            set(delivered)
+            get().startRecoveryQuestion(version.question, recoveryId, {
+              oneOff: true,
+            })
+          }, 1800)
+          return
+        }
+
+        if (actionId === 'run-again') {
+          const patched = patchVersionEverywhere(s, versionId, (v) => ({
+            ...v,
+            selectedFailureActionId: 'run-again',
+          }))
+          set(patched)
+          get().startRecoveryQuestion(version.question, recoveryId, {
+            afterAccess: true,
+          })
+        }
+      },
+
+      startRecoveryQuestion: (
+        question: string,
+        recoveryScenarioId: string,
+        opts?: { oneOff?: boolean; afterAccess?: boolean },
+      ) => {
+        const prev = get()
+        if (isSimulationActive(prev.simulationPhase) && prev.loadingConversationId) {
+          get().completeSimulation()
+        }
+
+        const recovery = findScenarioById(recoveryScenarioId)
+        let scenario = {
+          ...recovery,
+          failureKind: undefined,
+          restrictedSources: undefined,
+          clarificationOptions: undefined,
+          cards: recovery.cards.length > 0 ? recovery.cards : findScenarioById('loss-ratio').cards,
+        }
+
+        if (opts?.oneOff) {
+          scenario = {
+            ...scenario,
+            summary: `One-off answer — ${scenario.summary}`,
+            narrative: withOneOffNarrative(scenario.narrative),
+          }
+        } else if (opts?.afterAccess) {
+          scenario = {
+            ...scenario,
+            narrative: withFullAccessNarrative(scenario.narrative),
+          }
+        }
+
+        set((s) => {
+          const conversationId = s.activeConversationId ?? `conv-${Date.now()}`
+          const applied = applyQuestion(
+            question,
+            scenario,
+            'instant',
+            recovery.id,
+            s.creditsUsed,
+            s.creditsTotal,
+            false,
+            s.versions,
+          )
+          return {
+            ...applied,
+            activeConversationId: conversationId,
+            loadingConversationId: conversationId,
+            conversations: upsertConversation(
+              s.conversations,
+              conversationId,
+              applied.versions,
+              { touchActivity: true },
+            ),
+          }
+        })
       },
 
       loadConversation: (conversationId: string) => {

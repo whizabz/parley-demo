@@ -57,7 +57,12 @@ export function useReportSimulation() {
     }
 
     if (thinkingStep >= pipelineSteps.length) {
-      if (triageOutcome === 'text' || triageOutcome === 'clarify') {
+      if (
+        triageOutcome === 'text' ||
+        triageOutcome === 'clarify' ||
+        triageOutcome === 'system-failure' ||
+        triageOutcome === 'access-denied'
+      ) {
         const timer = setTimeout(() => completeSimulation(), 600)
         return () => clearTimeout(timer)
       }
@@ -74,8 +79,9 @@ export function useReportSimulation() {
         }, 6000)
         return () => clearTimeout(timer)
       }
+      // instant + partial → reveal cards (or complete if away / no cards)
       const timer = setTimeout(() => {
-        if (isAwayFromJob) completeSimulation()
+        if (isAwayFromJob || totalCards === 0) completeSimulation()
         else setSimulationPhase('revealing')
       }, 600)
       return () => clearTimeout(timer)
@@ -90,9 +96,12 @@ export function useReportSimulation() {
       if (
         next === SHARED_PREFIX_LENGTH &&
         triageOutcome !== 'reuse' &&
+        triageOutcome !== 'access-denied' &&
         simulationPhase === 'discovering'
       ) {
-        setSimulationPhase(triageOutcome === 'background' ? 'background-wait' : 'thinking')
+        setSimulationPhase(
+          triageOutcome === 'background' ? 'background-wait' : 'thinking',
+        )
       }
     }, delay)
     return () => clearTimeout(timer)
@@ -105,6 +114,7 @@ export function useReportSimulation() {
     isExport,
     loadingVersionId,
     isAwayFromJob,
+    totalCards,
     setThinkingStep,
     setSimulationPhase,
     completeSimulation,

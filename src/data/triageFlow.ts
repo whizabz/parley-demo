@@ -54,6 +54,40 @@ export function getPipelineForOutcome(outcome: TriageOutcome): PipelineStep[] {
         { text: 'Processing…' },
         { text: 'Preparing export…' },
       ]
+    case 'system-failure':
+      return [
+        ...SHARED_PREFIX_STEPS,
+        NO_EXISTING_REPORT_STEP,
+        { text: 'Building report logic…' },
+        {
+          text: 'Temporary issue — retrying once…',
+          variant: 'alert',
+        },
+        {
+          text: 'Still unable to complete this request…',
+          variant: 'alert',
+        },
+      ]
+    case 'access-denied':
+      return [
+        ...SHARED_PREFIX_STEPS.slice(0, 3),
+        { text: 'Checking data access…' },
+        {
+          text: 'Access restricted for Actuarial Reserve Model…',
+          variant: 'alert',
+        },
+      ]
+    case 'partial':
+      return [
+        ...SHARED_PREFIX_STEPS,
+        NO_EXISTING_REPORT_STEP,
+        { text: 'Checking data access…' },
+        {
+          text: 'Partial access — continuing with available sources…',
+          variant: 'alert',
+        },
+        { text: 'Generating insights…' },
+      ]
   }
 }
 
@@ -71,7 +105,10 @@ export function resolveTriageOutcome(
   forcedDemoMode: DemoMode | null,
   autoOutcomeIndex = 0,
 ): TriageOutcome {
-  // Scenario-owned clarify demos always ask first — independent of forced mode.
+  // Scenario-owned demos always win — independent of forced mode.
+  if (scenario.failureKind === 'system') return 'system-failure'
+  if (scenario.failureKind === 'access-denied') return 'access-denied'
+  if (scenario.failureKind === 'partial') return 'partial'
   if (scenario.clarificationOptions?.length) return 'clarify'
 
   if (forcedDemoMode === 'reused') return 'reuse'
@@ -89,6 +126,12 @@ export function scenarioForOutcome(base: Scenario, outcome: TriageOutcome): Scen
     return { ...base, cards: [], clarificationOptions: base.clarificationOptions }
   }
   if (outcome === 'text') return { ...base, cards: [], clarificationOptions: undefined }
+  if (outcome === 'system-failure' || outcome === 'access-denied') {
+    return { ...base, cards: [], clarificationOptions: undefined }
+  }
+  if (outcome === 'partial') {
+    return { ...base, clarificationOptions: undefined }
+  }
   if (outcome === 'export') return applyTriageLaneOverride(base, 'export')
   if (outcome === 'background') return applyTriageLaneOverride(base, 'background')
   return base
@@ -98,7 +141,9 @@ function isSlowStep(step: PipelineStep): boolean {
   return (
     step.text.startsWith('Queuing') ||
     step.text.startsWith('Processing') ||
-    step.text.startsWith('Preparing export')
+    step.text.startsWith('Preparing export') ||
+    step.text.includes('retrying') ||
+    step.text.includes('Still unable')
   )
 }
 
