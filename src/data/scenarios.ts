@@ -595,11 +595,13 @@ export function findScenario(input: string): Scenario | null {
   return null
 }
 
-export function resolveScenario(input: string): Scenario {
-  return findScenario(input) ?? scenarios[Math.floor(Math.random() * scenarios.length)]
-}
-
 const FALLBACK_SCENARIO_ID = 'loss-ratio'
+
+export function resolveScenario(input: string): Scenario {
+  // Unmatched questions stay on the standard demo path — never randomly land on
+  // failure scenarios (those are only via the dedicated home starters).
+  return findScenario(input) ?? scenarios.find((s) => s.id === FALLBACK_SCENARIO_ID)!
+}
 
 function withFallbackCards(scenario: Scenario): Card[] {
   if (scenario.cards.length > 0) return scenario.cards

@@ -150,10 +150,10 @@ export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) =
 /** Placeholders rotate through these when the home input is idle (typed as real questions). */
 export const homePlaceholderExamples = [
   "What's our loss ratio trend this year?",
-  'Show risk-adjusted cost projections for ACA individual',
   'Can you analyze our claims performance?',
   'Show claims volume by region',
   'Pull every claim line item for the last five years',
+  'Run a full retention cohort analysis across all policies',
 ]
 
 export function filterHomePrompts(query: string, limit = 5): SuggestedPrompt[] {

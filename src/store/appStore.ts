@@ -25,6 +25,7 @@ import {
   scenarioForOutcome,
   AUTO_TRIAGE_OUTCOME_ORDER,
   SHARED_PREFIX_LENGTH,
+  isAutoTriageOutcome,
 } from '../data/triageFlow'
 import {
   compactPinOrders,
@@ -412,8 +413,11 @@ export const useAppStore = create<AppState>()(
         const { autoOutcomeIndex } = get()
         const outcome = resolveTriageOutcome(base, autoOutcomeIndex)
         const scenario = scenarioForOutcome(base, outcome)
-        const nextAutoOutcomeIndex =
-          (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
+        // Failure/clarify demos (e.g. home starter #2) must not advance the
+        // standard auto cycle used by the first question path.
+        const nextAutoOutcomeIndex = isAutoTriageOutcome(outcome)
+          ? (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
+          : autoOutcomeIndex
         const conversationId = `conv-${Date.now()}`
         set((s) => {
           const applied = applyQuestion(
@@ -451,8 +455,9 @@ export const useAppStore = create<AppState>()(
         const { autoOutcomeIndex } = get()
         const outcome = resolveTriageOutcome(base, autoOutcomeIndex)
         const scenario = scenarioForOutcome(base, outcome)
-        const nextAutoOutcomeIndex =
-          (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
+        const nextAutoOutcomeIndex = isAutoTriageOutcome(outcome)
+          ? (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
+          : autoOutcomeIndex
         set((s) => {
           const conversationId = s.activeConversationId ?? `conv-${Date.now()}`
           const applied = applyQuestion(

@@ -87,6 +87,10 @@ export const AUTO_TRIAGE_OUTCOME_ORDER = [
   'export',
 ] as const satisfies readonly TriageOutcome[]
 
+export function isAutoTriageOutcome(outcome: TriageOutcome): boolean {
+  return (AUTO_TRIAGE_OUTCOME_ORDER as readonly TriageOutcome[]).includes(outcome)
+}
+
 export function resolveTriageOutcome(
   scenario: Scenario,
   autoOutcomeIndex = 0,
