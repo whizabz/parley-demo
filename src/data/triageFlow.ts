@@ -91,6 +91,19 @@ export function isAutoTriageOutcome(outcome: TriageOutcome): boolean {
   return (AUTO_TRIAGE_OUTCOME_ORDER as readonly TriageOutcome[]).includes(outcome)
 }
 
+/** Error-demo thread (2nd home starter): access → text → system failure → text… */
+export function resolveErrorDemoFollowUp(
+  versions: { failureKind?: string; responseKind?: string }[],
+): 'text' | 'system-failure' | null {
+  const accessIdx = versions.findIndex((v) => v.failureKind === 'access-denied')
+  if (accessIdx < 0) return null
+
+  const after = versions.slice(accessIdx + 1)
+  if (after.some((v) => v.failureKind === 'system')) return 'text'
+  if (after.some((v) => v.responseKind === 'text')) return 'system-failure'
+  return 'text'
+}
+
 export function resolveTriageOutcome(
   scenario: Scenario,
   autoOutcomeIndex = 0,

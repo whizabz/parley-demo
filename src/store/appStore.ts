@@ -26,6 +26,7 @@ import {
   AUTO_TRIAGE_OUTCOME_ORDER,
   SHARED_PREFIX_LENGTH,
   isAutoTriageOutcome,
+  resolveErrorDemoFollowUp,
 } from '../data/triageFlow'
 import {
   compactPinOrders,
@@ -173,13 +174,15 @@ function patchVersionFromScenario(
 }
 
 function chipsFromVersion(version: Version | undefined | null): string[] | null {
-  if (
-    !version ||
-    version.responseKind === 'clarify' ||
-    version.responseKind === 'failure'
-  ) {
-    return null
+  if (!version || version.responseKind === 'clarify') return null
+  // After access denied, offer a follow-up that lands as a simple text answer.
+  if (version.failureKind === 'access-denied') {
+    return [
+      'Break down ACA cost drivers without risk scores',
+      'Show medical cost trend for ACA individual',
+    ]
   }
+  if (version.responseKind === 'failure') return null
   if (!version.refinementChips?.length) return null
   return [...version.refinementChips]
 }
@@ -451,13 +454,36 @@ export const useAppStore = create<AppState>()(
           get().completeSimulation()
         }
 
-        const base = resolveScenario(question)
-        const { autoOutcomeIndex } = get()
-        const outcome = resolveTriageOutcome(base, autoOutcomeIndex)
+        const { autoOutcomeIndex, versions } = get()
+        let base = resolveScenario(question)
+        let outcome = resolveTriageOutcome(base, autoOutcomeIndex)
+        let holdAutoIndex = false
+
+        // Second home starter: access denied → text → system failure → text…
+        const errorFollowUp = resolveErrorDemoFollowUp(versions)
+        if (errorFollowUp === 'system-failure') {
+          base = findScenarioById('system-failure-reserves')
+          outcome = 'system-failure'
+          holdAutoIndex = true
+        } else if (errorFollowUp === 'text') {
+          if (base.failureKind || base.clarificationOptions?.length) {
+            base = findScenarioById('premium-retention')
+          }
+          base = {
+            ...base,
+            failureKind: undefined,
+            clarificationOptions: undefined,
+            restrictedSources: undefined,
+          }
+          outcome = 'text'
+          holdAutoIndex = true
+        }
+
         const scenario = scenarioForOutcome(base, outcome)
-        const nextAutoOutcomeIndex = isAutoTriageOutcome(outcome)
-          ? (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
-          : autoOutcomeIndex
+        const nextAutoOutcomeIndex =
+          !holdAutoIndex && isAutoTriageOutcome(outcome)
+            ? (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
+            : autoOutcomeIndex
         set((s) => {
           const conversationId = s.activeConversationId ?? `conv-${Date.now()}`
           const applied = applyQuestion(

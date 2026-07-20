@@ -22,7 +22,7 @@ export const suggestedPrompts: SuggestedPrompt[] = [
   {
     id: 'access-denied-actuarial',
     title: 'Show risk-adjusted ACA cost projections',
-    description: 'Demo: access denied — request access or narrow the question.',
+    description: 'Demo: access denied, then text, then a system failure with retry.',
     question: 'Show risk-adjusted cost projections for ACA individual',
   },
   {
