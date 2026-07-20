@@ -1,4 +1,4 @@
-import { RefreshCw, ShieldAlert, Clock, ArrowRight } from 'lucide-react'
+import { RefreshCw, ShieldAlert, ArrowRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { FailureActionId, Version } from '../../types'
 import { useAppStore } from '../../store/appStore'
@@ -198,13 +198,6 @@ export function FailurePrompt({ version, interactive }: FailurePromptProps) {
         label="Request access"
         description={`Send a standing access request to ${owner} for ${sources}.`}
         onClick={() => run('request-access')}
-      />
-      <ActionButton
-        disabled={!interactive}
-        icon={<Clock className="h-3.5 w-3.5" />}
-        label="Request a one-off answer"
-        description="Get this answered once without changing your standing permissions."
-        onClick={() => run('one-off')}
       />
       {narrow && (
         <ActionButton

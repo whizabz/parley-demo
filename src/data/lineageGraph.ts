@@ -28,6 +28,7 @@ const STAGING_BY_SOURCE: Record<string, string> = {
   'Adjuster Notes': 'adjuster_notes.notes_enriched',
   'Policy Master': 'policy_master.enrollment',
   'Actuarial Reserve Model': 'actuarial.reserve_ibnr',
+  'Risk Adjustment Model': 'actuarial.risk_adjustment_scores',
 }
 
 function toSourceSlug(name: string): string {
@@ -36,8 +37,8 @@ function toSourceSlug(name: string): string {
 
 export function buildLineageGraph(cardSources: string[]): LineageGraph {
   const sourceNames = [...new Set(cardSources)]
-  if (!sourceNames.includes('Actuarial Reserve Model')) {
-    sourceNames.push('Actuarial Reserve Model')
+  if (!sourceNames.includes('Risk Adjustment Model')) {
+    sourceNames.push('Risk Adjustment Model')
   }
 
   const nodes: LineageGraphNode[] = []
@@ -49,7 +50,7 @@ export function buildLineageGraph(cardSources: string[]): LineageGraph {
 
   sourceNames.forEach((name, index) => {
     const y = startY + index * rowGap
-    const restricted = name === 'Actuarial Reserve Model'
+    const restricted = name === 'Risk Adjustment Model'
     const sourceId = `source-${index}`
     const tableId = `table-${index}`
 

@@ -37,7 +37,7 @@ export const dataSources: DataSource[] = [
   },
   {
     id: 'restricted-actuarial',
-    name: 'Actuarial Reserve Model',
+    name: 'Risk Adjustment Model',
     lastRefreshed: '2026-06-25T12:00:00Z',
     domain: 'claims',
     permissionTags: ['actuarial-admin'],

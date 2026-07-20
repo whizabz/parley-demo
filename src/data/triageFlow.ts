@@ -73,7 +73,7 @@ export function getPipelineForOutcome(outcome: TriageOutcome): PipelineStep[] {
         ...SHARED_PREFIX_STEPS.slice(0, 3),
         { text: 'Checking data access…' },
         {
-          text: 'Access restricted for Actuarial Reserve Model…',
+          text: 'Access restricted for Risk Adjustment Model…',
           variant: 'alert',
         },
       ]

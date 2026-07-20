@@ -15,21 +15,21 @@ export const suggestedPrompts: SuggestedPrompt[] = [
   },
   {
     id: 'system-failure-reserves',
-    title: 'Show IBNR reserve adequacy by line',
+    title: 'Show risk scores by ACA metal level',
     description: 'Demo: system failure with retry that persists in the thread.',
-    question: 'Show IBNR reserve adequacy by line of business',
+    question: 'Show average risk scores by ACA metal level',
   },
   {
     id: 'access-denied-actuarial',
-    title: 'Show reserve model projections',
-    description: 'Demo: access denied — request access, one-off, or narrow.',
-    question: 'Show reserve model projections for commercial auto',
+    title: 'Show risk-adjusted ACA cost projections',
+    description: 'Demo: access denied — request access or narrow the question.',
+    question: 'Show risk-adjusted cost projections for ACA individual',
   },
   {
     id: 'partial-access-severity',
-    title: 'Claim severity with reserve context',
+    title: 'Medical cost severity with risk context',
     description: 'Demo: partial answer when some sources are restricted.',
-    question: "What's driving claim severity, including reserve model context?",
+    question: "What's driving medical cost severity, including risk adjustment context?",
   },
   {
     id: 'claims-region',
@@ -81,9 +81,9 @@ export const suggestedPrompts: SuggestedPrompt[] = [
   },
   {
     id: 'combined-ratio-state',
-    title: 'Combined ratio by state for commercial auto',
-    description: 'State-level loss and expense performance.',
-    question: 'What is our combined ratio by state for commercial auto?',
+    title: 'Medical cost ratio by state for ACA',
+    description: 'State-level medical cost performance for ACA individual.',
+    question: 'What is our medical cost ratio by state for ACA individual?',
   },
   {
     id: 'prior-auth-volume',
@@ -156,9 +156,9 @@ export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) =
 /** Placeholders rotate through these when the home input is idle (typed as real questions). */
 export const homePlaceholderExamples = [
   "What's our loss ratio trend this year?",
-  'Show reserve model projections for commercial auto',
-  'Show IBNR reserve adequacy by line of business',
-  "What's driving claim severity, including reserve model context?",
+  'Show risk-adjusted cost projections for ACA individual',
+  'Show average risk scores by ACA metal level',
+  "What's driving medical cost severity, including risk adjustment context?",
   'Can you analyze our claims performance?',
 ]
 

@@ -115,7 +115,7 @@ export function ValidationDrawer() {
                   )
                 })}
                 <li className="flex justify-between text-impact">
-                  <span>Actuarial Reserve Model</span>
+                  <span>Risk Adjustment Model</span>
                   <span className="text-xs">Restricted — no access</span>
                 </li>
               </ul>
