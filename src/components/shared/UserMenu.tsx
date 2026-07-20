@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Archive, ChevronDown, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
-import type { DemoMode } from '../../types'
-import { REUSED_REPORT_INFO, TRIAGE_LANE_INFO, getDemoModeInitials } from '../../data/triageLanes'
+import { Archive, ArchiveRestore, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import {
   formatLimitResetIn,
@@ -10,47 +8,20 @@ import {
 } from '../../utils/credits'
 import { getConversationLabel } from '../../utils/conversations'
 
-type DemoOption = { mode: DemoMode | null; label: string; scaleAbbrev?: string }
-
-type DemoSection = { id: string; label: string; options: DemoOption[] }
-
-const DEMO_TYPE_MENU: DemoSection[] = [
-  {
-    id: 'automatic',
-    label: 'Automatic',
-    options: [{ mode: null, label: 'Auto' }],
-  },
-  {
-    id: 'generated',
-    label: 'Generated report',
-    options: [
-      { mode: 'instant', label: TRIAGE_LANE_INFO.instant.label, scaleAbbrev: TRIAGE_LANE_INFO.instant.scaleAbbrev },
-      { mode: 'background', label: TRIAGE_LANE_INFO.background.label, scaleAbbrev: TRIAGE_LANE_INFO.background.scaleAbbrev },
-      { mode: 'export', label: TRIAGE_LANE_INFO.export.label, scaleAbbrev: TRIAGE_LANE_INFO.export.scaleAbbrev },
-    ],
-  },
-  {
-    id: 'library',
-    label: 'Library',
-    options: [
-      { mode: 'reused', label: REUSED_REPORT_INFO.label, scaleAbbrev: REUSED_REPORT_INFO.scaleAbbrev },
-    ],
-  },
-]
-
-function sectionForMode(mode: DemoMode | null): string {
-  const match = DEMO_TYPE_MENU.find((section) => section.options.some((o) => o.mode === mode))
-  return match?.id ?? 'automatic'
+function formatArchivedAt(iso?: string) {
+  if (!iso) return null
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
 }
 
 export function UserMenu() {
   const [open, setOpen] = useState(false)
   const [panel, setPanel] = useState<'main' | 'archived'>('main')
   const [resetLabel, setResetLabel] = useState('')
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const menuRef = useRef<HTMLDivElement>(null)
-  const forcedDemoMode = useAppStore((s) => s.forcedDemoMode)
-  const setForcedDemoMode = useAppStore((s) => s.setForcedDemoMode)
   const creditsUsed = useAppStore((s) => s.creditsUsed)
   const creditsTotal = useAppStore((s) => s.creditsTotal)
   const creditsResetAt = useAppStore((s) => s.creditsResetAt)
@@ -66,7 +37,11 @@ export function UserMenu() {
     () =>
       conversations
         .filter((c) => c.archived)
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()),
+        .sort(
+          (a, b) =>
+            new Date(b.archivedAt ?? b.updatedAt).getTime() -
+            new Date(a.archivedAt ?? a.updatedAt).getTime(),
+        ),
     [conversations],
   )
 
@@ -78,12 +53,8 @@ export function UserMenu() {
   }, [creditsResetAt])
 
   useEffect(() => {
-    if (!open) {
-      setPanel('main')
-      return
-    }
-    setExpandedSections(new Set([sectionForMode(forcedDemoMode)]))
-  }, [open, forcedDemoMode])
+    if (!open) setPanel('main')
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -98,27 +69,16 @@ export function UserMenu() {
     return () => document.removeEventListener('mousedown', handlePointerDown)
   }, [open])
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections((prev) => {
-      const next = new Set(prev)
-      if (next.has(sectionId)) next.delete(sectionId)
-      else next.add(sectionId)
-      return next
-    })
-  }
-
   return (
     <div ref={menuRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`relative flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white hover:opacity-90 ${
-          forcedDemoMode ? 'ring-2 ring-accent ring-offset-1' : ''
-        }`}
+        className="relative flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white hover:opacity-90"
         aria-label="User menu"
         aria-expanded={open}
       >
-        {getDemoModeInitials(forcedDemoMode)}
+        ME
       </button>
 
       {open && (
@@ -156,64 +116,6 @@ export function UserMenu() {
                   <ChevronRight className="h-3.5 w-3.5" />
                 </span>
               </button>
-
-              <p className="border-t border-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-border-form">
-                Demo type
-              </p>
-              {DEMO_TYPE_MENU.map((section) => {
-                const expanded = expandedSections.has(section.id)
-                const sectionActive = section.options.some((o) => o.mode === forcedDemoMode)
-
-                return (
-                  <div key={section.id}>
-                    <button
-                      type="button"
-                      onClick={() => toggleSection(section.id)}
-                      className={`flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface ${
-                        sectionActive ? 'text-brand' : 'text-body'
-                      }`}
-                    >
-                      {expanded ? (
-                        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-border-form" />
-                      ) : (
-                        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-border-form" />
-                      )}
-                      <span className={`text-sm ${sectionActive ? 'font-medium' : ''}`}>
-                        {section.label}
-                      </span>
-                    </button>
-                    {expanded &&
-                      section.options.map((option) => {
-                        const active = forcedDemoMode === option.mode
-                        return (
-                          <button
-                            key={option.label}
-                            type="button"
-                            onClick={() => {
-                              setForcedDemoMode(option.mode)
-                              setOpen(false)
-                            }}
-                            className={`flex w-full items-center justify-between gap-3 py-2 pl-9 pr-3 text-left hover:bg-surface ${
-                              active ? 'text-brand' : 'text-body'
-                            }`}
-                          >
-                            <span className={`text-sm ${active ? 'font-medium' : ''}`}>
-                              {option.label}
-                            </span>
-                            <span className="flex items-center gap-2">
-                              {option.scaleAbbrev && (
-                                <span className="font-mono text-xs text-border-form">
-                                  {option.scaleAbbrev}
-                                </span>
-                              )}
-                              {active && <span className="text-xs text-accent">●</span>}
-                            </span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                )
-              })}
             </>
           ) : (
             <>
@@ -231,6 +133,7 @@ export function UserMenu() {
                 ) : (
                   archived.map((conversation) => {
                     const label = getConversationLabel(conversation)
+                    const archivedLabel = formatArchivedAt(conversation.archivedAt)
                     return (
                       <div
                         key={conversation.id}
@@ -242,10 +145,15 @@ export function UserMenu() {
                             loadConversation(conversation.id)
                             setOpen(false)
                           }}
-                          className="min-w-0 flex-1 truncate rounded-md px-2 py-2 text-left text-sm text-body hover:bg-surface"
+                          className="min-w-0 flex-1 rounded-md px-2 py-2 text-left hover:bg-surface"
                           title={label}
                         >
-                          {label}
+                          <span className="block truncate text-sm text-body">{label}</span>
+                          {archivedLabel && (
+                            <span className="mt-0.5 block text-[11px] text-border-form">
+                              Archived {archivedLabel}
+                            </span>
+                          )}
                         </button>
                         <button
                           type="button"
@@ -254,7 +162,7 @@ export function UserMenu() {
                           aria-label={`Restore ${label}`}
                           title="Restore"
                         >
-                          <RotateCcw className="h-3.5 w-3.5" />
+                          <ArchiveRestore className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     )

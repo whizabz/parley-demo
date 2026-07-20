@@ -1,5 +1,4 @@
 export type TriageLane = 'instant' | 'background' | 'export'
-export type DemoMode = TriageLane | 'reused'
 export type ReportStatus = 'generating' | 'ready' | 'failed'
 export type ReportOrigin = 'generated' | 'reused'
 export type FailureKind = 'system' | 'access-denied' | 'partial'
@@ -225,4 +224,6 @@ export interface Conversation {
   /** User-edited chat name; preferred over question title. */
   customTitle?: string
   archived?: boolean
+  /** When the chat was archived. */
+  archivedAt?: string
 }

@@ -1,4 +1,4 @@
-import type { TriageLane, DemoMode } from '../types'
+import type { TriageLane } from '../types'
 
 export const TRIAGE_LANE_INFO: Record<
   TriageLane,
@@ -38,17 +38,4 @@ export function getTriageExplanation(triageLane: TriageLane): string | null {
     return `Delivered as an export because the result set is ${TRIAGE_LANE_INFO.export.scale.toLowerCase()} — too large to show as report tiles.`
   }
   return null
-}
-
-export function getDemoModeInitials(mode: DemoMode | null): string {
-  if (mode === null) return 'AU'
-  if (mode === 'reused') {
-    return REUSED_REPORT_INFO.label
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase()
-  }
-  return TRIAGE_LANE_INFO[mode].label.slice(0, 2).toUpperCase()
 }

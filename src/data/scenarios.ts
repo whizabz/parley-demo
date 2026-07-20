@@ -1,4 +1,4 @@
-import type { Card, DemoMode, Scenario, TriageLane } from '../types'
+import type { Card, Scenario, TriageLane } from '../types'
 
 const lossRatioLineChart: Card = {
   id: 'loss-ratio-chart',
@@ -701,11 +701,6 @@ export function applyReuseOverride(scenario: Scenario): Scenario {
     exportFileName: undefined,
     exportFileSize: undefined,
   }
-}
-
-export function applyDemoModeOverride(scenario: Scenario, mode: DemoMode | null): Scenario {
-  if (!mode || mode === 'reused') return scenario
-  return applyTriageLaneOverride(scenario, mode)
 }
 
 export function getReuseTemplate(): Scenario {

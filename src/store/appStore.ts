@@ -3,7 +3,6 @@ import { persist } from 'zustand/middleware'
 import { useShallow } from 'zustand/react/shallow'
 import type {
   Conversation,
-  DemoMode,
   FailureActionId,
   NarrativeSegment,
   ResponseKind,
@@ -60,7 +59,6 @@ interface AppState {
   favoritedReports: Version[]
   conversations: Conversation[]
   activeConversationId: string | null
-  forcedDemoMode: DemoMode | null
   triageOutcome: TriageOutcome | null
   pendingBaseScenarioId: string | null
   bookmarkPromptVersionId: string | null
@@ -101,7 +99,6 @@ interface AppState {
   closeValidation: () => void
   loadSavedReport: (versionId: string) => void
   loadConversation: (conversationId: string) => void
-  setForcedDemoMode: (mode: DemoMode | null) => void
   shuffleCreditsUsage: () => void
   resolveReuseReport: (action: 'use' | 'generate-new') => void
   openCanvas: () => void
@@ -315,7 +312,6 @@ export const useAppStore = create<AppState>()(
       favoritedReports: sampleArtifacts,
       conversations: sampleConversations,
       activeConversationId: null,
-      forcedDemoMode: null,
       triageOutcome: null,
       pendingBaseScenarioId: null,
       bookmarkPromptVersionId: null,
@@ -413,13 +409,11 @@ export const useAppStore = create<AppState>()(
         }
 
         const base = resolveScenario(question)
-        const { forcedDemoMode, autoOutcomeIndex } = get()
-        const outcome = resolveTriageOutcome(base, forcedDemoMode, autoOutcomeIndex)
+        const { autoOutcomeIndex } = get()
+        const outcome = resolveTriageOutcome(base, autoOutcomeIndex)
         const scenario = scenarioForOutcome(base, outcome)
         const nextAutoOutcomeIndex =
-          forcedDemoMode === null
-            ? (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
-            : autoOutcomeIndex
+          (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
         const conversationId = `conv-${Date.now()}`
         set((s) => {
           const applied = applyQuestion(
@@ -454,13 +448,11 @@ export const useAppStore = create<AppState>()(
         }
 
         const base = resolveScenario(question)
-        const { forcedDemoMode, autoOutcomeIndex } = get()
-        const outcome = resolveTriageOutcome(base, forcedDemoMode, autoOutcomeIndex)
+        const { autoOutcomeIndex } = get()
+        const outcome = resolveTriageOutcome(base, autoOutcomeIndex)
         const scenario = scenarioForOutcome(base, outcome)
         const nextAutoOutcomeIndex =
-          forcedDemoMode === null
-            ? (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
-            : autoOutcomeIndex
+          (autoOutcomeIndex + 1) % AUTO_TRIAGE_OUTCOME_ORDER.length
         set((s) => {
           const conversationId = s.activeConversationId ?? `conv-${Date.now()}`
           const applied = applyQuestion(
@@ -653,6 +645,7 @@ export const useAppStore = create<AppState>()(
               ? {
                   ...c,
                   archived: true,
+                  archivedAt: new Date().toISOString(),
                   pinned: false,
                   pinnedAt: undefined,
                   pinOrder: undefined,
@@ -706,6 +699,7 @@ export const useAppStore = create<AppState>()(
             return {
               ...c,
               archived: false,
+              archivedAt: undefined,
               updatedAt: new Date().toISOString(),
             }
           }),
@@ -1145,8 +1139,6 @@ export const useAppStore = create<AppState>()(
               }),
         })
       },
-
-      setForcedDemoMode: (mode) => set({ forcedDemoMode: mode }),
 
       shuffleCreditsUsage: () =>
         set((s) => {

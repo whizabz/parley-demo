@@ -1,4 +1,4 @@
-import type { DemoMode, PipelineStep, Scenario, TriageOutcome } from '../types'
+import type { PipelineStep, Scenario, TriageOutcome } from '../types'
 import { applyTriageLaneOverride } from './scenarios'
 
 export const SHARED_PREFIX_STEPS: PipelineStep[] = [
@@ -93,7 +93,6 @@ export function getPipelineForOutcome(outcome: TriageOutcome): PipelineStep[] {
 
 export const AUTO_TRIAGE_OUTCOME_ORDER = [
   'text',
-  'text',
   'reuse',
   'instant',
   'background',
@@ -102,19 +101,13 @@ export const AUTO_TRIAGE_OUTCOME_ORDER = [
 
 export function resolveTriageOutcome(
   scenario: Scenario,
-  forcedDemoMode: DemoMode | null,
   autoOutcomeIndex = 0,
 ): TriageOutcome {
-  // Scenario-owned demos always win — independent of forced mode.
+  // Scenario-owned demos always win.
   if (scenario.failureKind === 'system') return 'system-failure'
   if (scenario.failureKind === 'access-denied') return 'access-denied'
   if (scenario.failureKind === 'partial') return 'partial'
   if (scenario.clarificationOptions?.length) return 'clarify'
-
-  if (forcedDemoMode === 'reused') return 'reuse'
-  if (forcedDemoMode === 'background') return 'background'
-  if (forcedDemoMode === 'export') return 'export'
-  if (forcedDemoMode === 'instant') return 'instant'
 
   return AUTO_TRIAGE_OUTCOME_ORDER[
     autoOutcomeIndex % AUTO_TRIAGE_OUTCOME_ORDER.length

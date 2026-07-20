@@ -67,19 +67,23 @@ function conversation(
   version: Version,
   pinned: boolean,
   updatedAt: string,
-  pinOrder?: number,
+  opts?: { pinOrder?: number; archived?: boolean; customTitle?: string; archivedAt?: string },
 ): Conversation {
+  const archived = opts?.archived ?? false
   return {
     id,
     title: version.question,
     versions: [version],
     createdAt: version.createdAt,
     updatedAt,
-    pinned,
-    ...(pinned
+    pinned: archived ? false : pinned,
+    archived: archived || undefined,
+    archivedAt: archived ? (opts?.archivedAt ?? updatedAt) : undefined,
+    customTitle: opts?.customTitle,
+    ...(pinned && !archived
       ? {
           pinnedAt: updatedAt,
-          pinOrder: pinOrder ?? 0,
+          pinOrder: opts?.pinOrder ?? 0,
         }
       : {}),
   }
@@ -119,7 +123,7 @@ export const sampleConversations: Conversation[] = [
     }),
     true,
     daysAgo(2),
-    0,
+    { pinOrder: 0 },
   ),
   conversation(
     'sample-conv-export-aca',
@@ -144,7 +148,7 @@ export const sampleConversations: Conversation[] = [
     }),
     true,
     daysAgo(5),
-    1,
+    { pinOrder: 1 },
   ),
   conversation(
     'sample-conv-claims-volume',
@@ -191,6 +195,48 @@ export const sampleConversations: Conversation[] = [
     }),
     false,
     daysAgo(0.6),
+  ),
+  conversation(
+    'sample-conv-archived-weekly',
+    versionFromScenario('monthly-breakdown', {
+      versionId: 'sample-ver-archived-weekly',
+      createdAt: daysAgo(12),
+    }),
+    false,
+    daysAgo(12),
+    {
+      archived: true,
+      customTitle: 'June weekly loss ratios',
+      archivedAt: daysAgo(10),
+    },
+  ),
+  conversation(
+    'sample-conv-archived-volume',
+    versionFromScenario('claims-volume-reuse', {
+      versionId: 'sample-ver-archived-volume',
+      createdAt: daysAgo(18),
+    }),
+    false,
+    daysAgo(18),
+    {
+      archived: true,
+      customTitle: 'Regional claims volume',
+      archivedAt: daysAgo(14),
+    },
+  ),
+  conversation(
+    'sample-conv-archived-retention',
+    versionFromScenario('premium-retention', {
+      versionId: 'sample-ver-archived-retention',
+      createdAt: daysAgo(24),
+    }),
+    false,
+    daysAgo(24),
+    {
+      archived: true,
+      customTitle: 'Segment retention review',
+      archivedAt: daysAgo(20),
+    },
   ),
 ]
 

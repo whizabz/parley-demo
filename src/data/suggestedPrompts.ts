@@ -139,12 +139,12 @@ export const suggestedPrompts: SuggestedPrompt[] = [
 const HOME_STARTER_IDS = [
   'loss-ratio',
   'access-denied-actuarial',
-  'system-failure-reserves',
-  'partial-access-severity',
   'clarify-claims-scope',
   'claims-volume-reuse',
   'export-claims',
   'retention-cohort',
+  'claims-region',
+  'premium-retention',
 ] as const
 
 export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) => {
@@ -157,9 +157,9 @@ export const homeStarterPrompts: SuggestedPrompt[] = HOME_STARTER_IDS.map((id) =
 export const homePlaceholderExamples = [
   "What's our loss ratio trend this year?",
   'Show risk-adjusted cost projections for ACA individual',
-  'Show average risk scores by ACA metal level',
-  "What's driving medical cost severity, including risk adjustment context?",
   'Can you analyze our claims performance?',
+  'Show claims volume by region',
+  'Pull every claim line item for the last five years',
 ]
 
 export function filterHomePrompts(query: string, limit = 5): SuggestedPrompt[] {
