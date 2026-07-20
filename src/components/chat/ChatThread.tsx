@@ -1,14 +1,22 @@
+import { useEffect, useRef } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { ChatMessage } from './ChatMessage'
 
 export function ChatThread() {
   const versions = useAppStore((s) => s.versions)
   const activeVersionId = useAppStore((s) => s.activeVersionId)
+  const simulationPhase = useAppStore((s) => s.simulationPhase)
+  const thinkingStep = useAppStore((s) => s.thinkingStep)
   const clearCardSelection = useAppStore((s) => s.clearCardSelection)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+  }, [versions.length, activeVersionId, simulationPhase, thinkingStep])
 
   return (
     <div
-      className="flex-1 overflow-y-auto"
+      className="min-h-0 flex-1 overflow-y-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget) clearCardSelection()
       }}
@@ -22,6 +30,7 @@ export function ChatThread() {
             isActive={v.id === activeVersionId}
           />
         ))}
+        <div ref={bottomRef} aria-hidden className="h-px w-full" />
       </div>
     </div>
   )
