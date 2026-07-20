@@ -94,47 +94,6 @@ export function FailurePrompt({ version, interactive }: FailurePromptProps) {
     )
   }
 
-  if (kind === 'partial') {
-    if (status === 'pending') {
-      return (
-        <div className="mt-3">
-          <StatusNote>
-            Access request sent to {owner}. You’ll be notified here when it’s approved.
-          </StatusNote>
-        </div>
-      )
-    }
-    if (status === 'granted') {
-      return (
-        <div className="mt-3 space-y-2">
-          <StatusNote>
-            Access approved for {sources}. You can re-run for the complete picture.
-          </StatusNote>
-          {interactive && (
-            <ActionButton
-              primary
-              icon={<ArrowRight className="h-3.5 w-3.5" />}
-              label="Run again with full access"
-              onClick={() => run('run-again')}
-            />
-          )}
-        </div>
-      )
-    }
-    if (selected === 'request-full-access') return null
-    return (
-      <div className="mt-3 space-y-2">
-        <ActionButton
-          disabled={!interactive}
-          icon={<ShieldAlert className="h-3.5 w-3.5" />}
-          label="Request access to complete the picture"
-          description={`Ask ${owner} for access to ${sources}.`}
-          onClick={() => run('request-full-access')}
-        />
-      </div>
-    )
-  }
-
   // access-denied
   if (status === 'pending') {
     return (

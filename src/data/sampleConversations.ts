@@ -24,7 +24,7 @@ function versionFromScenario(
 
   const report = scenarioToReport(scenario)
   report.id = `sample-report-${opts.versionId}`
-  if (!scenario.failureKind || scenario.failureKind === 'partial') {
+  if (!scenario.failureKind) {
     report.status = 'ready'
   }
 

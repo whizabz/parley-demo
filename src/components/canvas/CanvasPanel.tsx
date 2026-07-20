@@ -7,7 +7,6 @@ import { ExportResult } from './ExportResult'
 import { ReportNarrative } from './ReportNarrative'
 import { CardGrid } from './CardGrid'
 import { CanvasObjectSelection } from './CanvasObjectSelection'
-import { PartialAccessBanner } from './PartialAccessBanner'
 
 interface CanvasPanelProps {
   onClose?: () => void
@@ -96,8 +95,6 @@ export function CanvasPanel({ onClose }: CanvasPanelProps) {
 
       <div className="flex-1 overflow-y-auto">
         {showTriagePrompt && <SimilarReportPrompt />}
-
-        {version && showCards && <PartialAccessBanner version={version} />}
 
         {showNarrative && <ReportNarrative version={version} />}
 

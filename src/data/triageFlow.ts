@@ -77,24 +77,12 @@ export function getPipelineForOutcome(outcome: TriageOutcome): PipelineStep[] {
           variant: 'alert',
         },
       ]
-    case 'partial':
-      return [
-        ...SHARED_PREFIX_STEPS,
-        NO_EXISTING_REPORT_STEP,
-        { text: 'Checking data access…' },
-        {
-          text: 'Partial access — continuing with available sources…',
-          variant: 'alert',
-        },
-        { text: 'Generating insights…' },
-      ]
   }
 }
 
 export const AUTO_TRIAGE_OUTCOME_ORDER = [
   'text',
   'reuse',
-  'instant',
   'background',
   'export',
 ] as const satisfies readonly TriageOutcome[]
@@ -106,7 +94,6 @@ export function resolveTriageOutcome(
   // Scenario-owned demos always win.
   if (scenario.failureKind === 'system') return 'system-failure'
   if (scenario.failureKind === 'access-denied') return 'access-denied'
-  if (scenario.failureKind === 'partial') return 'partial'
   if (scenario.clarificationOptions?.length) return 'clarify'
 
   return AUTO_TRIAGE_OUTCOME_ORDER[
@@ -121,9 +108,6 @@ export function scenarioForOutcome(base: Scenario, outcome: TriageOutcome): Scen
   if (outcome === 'text') return { ...base, cards: [], clarificationOptions: undefined }
   if (outcome === 'system-failure' || outcome === 'access-denied') {
     return { ...base, cards: [], clarificationOptions: undefined }
-  }
-  if (outcome === 'partial') {
-    return { ...base, clarificationOptions: undefined }
   }
   if (outcome === 'export') return applyTriageLaneOverride(base, 'export')
   if (outcome === 'background') return applyTriageLaneOverride(base, 'background')

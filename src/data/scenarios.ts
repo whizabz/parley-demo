@@ -580,36 +580,6 @@ export const scenarios: Scenario[] = [
     narrowQuestion: 'Which member segments have the lowest retention?',
     recoveryScenarioId: 'premium-retention',
   },
-  {
-    id: 'partial-access-severity',
-    summary: 'Partial answer — risk adjustment excluded',
-    matchPatterns: [
-      'severity including risk adjustment',
-      'medical cost severity with risk',
-      'partial access',
-      'claim severity with risk adjustment',
-    ],
-    question: "What's driving medical cost severity, including risk adjustment context?",
-    triageLane: 'instant',
-    origin: 'generated',
-    domain: 'claims',
-    narrative: [
-      {
-        text: 'Answer uses Claims Ledger and Membership data only — Risk Adjustment Model is restricted for your account.',
-        type: 'fact',
-      },
-      {
-        text: 'Medical cost severity is up 8.4% QoQ, concentrated in ACA individual inpatient stays. Without risk adjustment, case-mix and HCC context are missing from this view.',
-        type: 'interpretation',
-      },
-    ],
-    refinementChips: ['Break down by region', 'Show high-cost claimants', 'Filter to ACA individual'],
-    cards: [lossRatioMetric, lossRatioInsight, regionBarChart],
-    failureKind: 'partial',
-    restrictedSources: ['Risk Adjustment Model'],
-    restrictedSourceOwner: 'Actuarial',
-    recoveryScenarioId: 'premium-retention',
-  },
 ]
 
 export function findScenario(input: string): Scenario | null {

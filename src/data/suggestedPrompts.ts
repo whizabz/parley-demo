@@ -26,12 +26,6 @@ export const suggestedPrompts: SuggestedPrompt[] = [
     question: 'Show risk-adjusted cost projections for ACA individual',
   },
   {
-    id: 'partial-access-severity',
-    title: 'Medical cost severity with risk context',
-    description: 'Demo: partial answer when some sources are restricted.',
-    question: "What's driving medical cost severity, including risk adjustment context?",
-  },
-  {
     id: 'claims-region',
     title: 'How do claims by region compare to last year?',
     description: 'Regional volume and year-over-year change across markets.',

@@ -79,7 +79,7 @@ export function useReportSimulation() {
         }, 6000)
         return () => clearTimeout(timer)
       }
-      // instant + partial → reveal cards (or complete if away / no cards)
+      // instant → reveal cards (or complete if away / no cards)
       const timer = setTimeout(() => {
         if (isAwayFromJob || totalCards === 0) completeSimulation()
         else setSimulationPhase('revealing')

@@ -36,7 +36,7 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
 
   const summary = version.summary ?? 'Report generated from your question'
   const isClarify = version.responseKind === 'clarify'
-  const isFailure = version.responseKind === 'failure' || version.failureKind === 'partial'
+  const isFailure = version.responseKind === 'failure'
   const isTextOnly = isTextOnlyVersion(version)
   const hasVisualization = versionHasVisualization(version)
   // Keep prior turns' artifact cards visible while a newer turn is thinking.
@@ -118,9 +118,6 @@ export function ChatMessage({ version, versionNumber, isActive }: Props) {
                       </p>
                     )}
                   </button>
-                  {version.failureKind === 'partial' && (
-                    <FailurePrompt version={version} interactive={failureInteractive} />
-                  )}
                 </div>
               )}
 

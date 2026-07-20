@@ -954,7 +954,7 @@ export const useAppStore = create<AppState>()(
           return
         }
 
-        if (actionId === 'request-access' || actionId === 'request-full-access') {
+        if (actionId === 'request-access') {
           const patched = patchVersionEverywhere(s, versionId, (v) => ({
             ...v,
             selectedFailureActionId: actionId,

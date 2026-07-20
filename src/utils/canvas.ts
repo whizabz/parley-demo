@@ -22,11 +22,7 @@ export function isTextOnlyVersion(version: Version): boolean {
 }
 
 export function isFailureVersion(version: Version): boolean {
-  return (
-    version.responseKind === 'failure' ||
-    version.failureKind === 'partial' ||
-    version.report.status === 'failed'
-  )
+  return version.responseKind === 'failure' || version.report.status === 'failed'
 }
 
 export function shouldAutoOpenCanvas(

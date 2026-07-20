@@ -1,7 +1,7 @@
 export type TriageLane = 'instant' | 'background' | 'export'
 export type ReportStatus = 'generating' | 'ready' | 'failed'
 export type ReportOrigin = 'generated' | 'reused'
-export type FailureKind = 'system' | 'access-denied' | 'partial'
+export type FailureKind = 'system' | 'access-denied'
 export type AccessRequestStatus =
   | 'idle'
   | 'pending'
@@ -113,7 +113,6 @@ export type FailureActionId =
   | 'one-off'
   | 'narrow'
   | 'run-again'
-  | 'request-full-access'
 
 export interface Version {
   id: string
@@ -193,7 +192,6 @@ export type TriageOutcome =
   | 'export'
   | 'system-failure'
   | 'access-denied'
-  | 'partial'
 
 export type PipelineStepVariant = 'default' | 'alert'
 
