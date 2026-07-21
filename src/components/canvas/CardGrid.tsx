@@ -14,10 +14,18 @@ export function CardGrid() {
 
   const isRevealing = isActiveLoading && simulationPhase === 'revealing'
   const cards = version.report.cards
+  const isBackgroundTable =
+    version.report.triageLane === 'background' &&
+    cards.length === 1 &&
+    cards[0]?.type === 'table'
 
   return (
     <div
-      className="columns-1 gap-4 p-6 sm:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid"
+      className={
+        isBackgroundTable
+          ? 'p-6'
+          : 'columns-1 gap-4 p-6 sm:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid'
+      }
       onClick={(e) => {
         if (e.target === e.currentTarget) clearCardSelection()
       }}

@@ -230,6 +230,24 @@ export const reuseCards: Card[] = [
 
 const retentionCards: Card[] = [
   {
+    id: 'retention-table',
+    type: 'table',
+    title: 'Retention by Cohort Month',
+    columns: ['Cohort month', 'Policies remaining', 'Retention rate', 'Change'],
+    rows: [
+      ['M0', '48,620', '100.0%', '—'],
+      ['M3', '45,800', '94.2%', '-5.8 pts'],
+      ['M6', '43,320', '89.1%', '-5.1 pts'],
+      ['M9', '41,620', '85.6%', '-3.5 pts'],
+      ['M12', '40,010', '82.3%', '-3.3 pts'],
+    ],
+    sources: ['Policy Master', 'Premium Register'],
+    generationDetail: 'Policy counts and retention rates by elapsed cohort month for H2 2025.',
+    queryLogic: 'SELECT cohort_month, policies_remaining, retention_rate FROM retention_cohort_analysis',
+    lineage: [{ id: 'l1', label: 'Policy Master' }],
+    contextualFollowUpChips: ['Split by product tier', 'Show lapse reasons', 'Compare cohorts'],
+  },
+  {
     id: 'retention-chart',
     type: 'chart',
     chartType: 'line',
@@ -608,6 +626,16 @@ function withFallbackCards(scenario: Scenario): Card[] {
   return scenarios.find((s) => s.id === FALLBACK_SCENARIO_ID)!.cards
 }
 
+function withBackgroundTable(scenario: Scenario): Card[] {
+  const scenarioTable = scenario.cards.find((card) => card.type === 'table')
+  if (scenarioTable) return [scenarioTable]
+
+  const fallbackTable = scenarios
+    .find((s) => s.id === FALLBACK_SCENARIO_ID)!
+    .cards.find((card) => card.type === 'table')
+  return fallbackTable ? [fallbackTable] : []
+}
+
 function withExportDefaults(scenario: Scenario): Pick<Scenario, 'exportFileName' | 'exportFileSize'> {
   return {
     exportFileName: scenario.exportFileName ?? `${scenario.domain}_export.csv`,
@@ -619,6 +647,9 @@ export function applyTriageLaneOverride(scenario: Scenario, lane: TriageLane | n
   if (!lane || lane === scenario.triageLane) {
     if (scenario.triageLane === 'export') {
       return { ...scenario, ...withExportDefaults(scenario), cards: [] }
+    }
+    if (scenario.triageLane === 'background') {
+      return { ...scenario, cards: withBackgroundTable(scenario) }
     }
     return scenario
   }
@@ -640,7 +671,7 @@ export function applyTriageLaneOverride(scenario: Scenario, lane: TriageLane | n
       triageLane: 'background',
       origin: 'generated',
       originalReportRef: undefined,
-      cards: withFallbackCards(scenario),
+      cards: withBackgroundTable(scenario),
       exportFileName: undefined,
       exportFileSize: undefined,
     }
